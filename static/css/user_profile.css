@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background:#000;
+    color:#fff;
+}
+
+.layout{
+    display:flex;
+    min-height:100vh;
+}
+
+/* Sidebar */
+
+.sidebar{
+    width:260px;
+    background:#0f0f0f;
+    border-right:1px solid #202020;
+    padding:30px;
+}
+
+.logo{
+    font-size:34px;
+    font-weight:800;
+    margin-bottom:60px;
+}
+
+.sidebar nav{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.sidebar a{
+    color:#bdbdbd;
+    text-decoration:none;
+    padding:14px 18px;
+    border-radius:12px;
+    transition:.3s;
+}
+
+.sidebar a:hover{
+    background:#171717;
+    color:#fff;
+}
+
+.active{
+    background:#2563eb;
+    color:#fff !important;
+}
+
+/* Main */
+
+.layout .content{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:60px;
+}
+
+/* Container */
+
+.profile-container{
+    width:100%;
+    max-width:760px;
+}
+
+.profile-container h1{
+    text-align:center;
+    font-size:42px;
+    margin-bottom:35px;
+}
+
+/* Card */
+
+.profile-card{
+    background:#111;
+    border:1px solid #222;
+    border-radius:26px;
+    padding:45px;
+}
+
+/* Avatar */
+
+.avatar-section{
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.avatar-wrapper{
+    position:relative;
+    display:inline-block;
+    cursor:pointer;
+    margin:0 auto 20px;
+}
+
+.avatar{
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    object-fit:cover;
+
+    background:#2563eb;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:64px;
+    font-weight:700;
+}
+
+.edit-icon{
+    position:absolute;
+    bottom:4px;
+    right:4px;
+    background:#1f1f1f;
+    color:#e0e0e0;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:3px solid #111; /* Matches the card background for a cut-out look */
+    transition:.3s;
+}
+
+.edit-icon svg{
+    width:16px;
+    height:16px;
+}
+
+.avatar-wrapper:hover .edit-icon{
+    background:#1d4ed8;
+    transform:scale(1.05);
+}
+
+/* Inputs */
+
+.form-group{
+    margin-bottom:24px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:10px;
+    font-size:15px;
+    font-weight:600;
+}
+
+.form-group input,
+.form-group textarea{
+
+    width:100%;
+
+    background:#1b1b1b;
+
+    border:1px solid #2b2b2b;
+
+    color:white;
+
+    padding:16px;
+
+    border-radius:14px;
+
+    font-size:15px;
+
+    transition:.3s;
+}
+
+.form-group textarea{
+    resize:vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+
+    outline:none;
+
+    border-color:#2563eb;
+
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+input:disabled{
+    opacity:.7;
+}
+
+/* Button */
+
+.save-btn{
+
+    width:100%;
+
+    background:#2563eb;
+
+    border:none;
+
+    color:white;
+
+    padding:16px;
+
+    border-radius:14px;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.save-btn:hover{
+    background:#1d4ed8;
+}

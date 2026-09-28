@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Project | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=9">
+    <style>
+        .ep-section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+        .ep-card { padding: 28px; margin-bottom: 20px; }
+        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #8B5CF6, #3B82F6); color: white; padding: 14px 22px; border-radius: 14px; box-shadow: 0 10px 30px rgba(139,92,246,0.4); font-weight: 600; font-size: 14px; z-index: 2000; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 10px; pointer-events: none; white-space: nowrap; }
+        .toast-notification.show { bottom: 40px; }
+        .stale-warning { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35); border-radius: 10px; font-size: 13px; color: #fbbf24; margin-top: 10px; }
+        .chapter-progress-bar { background: linear-gradient(145deg, rgba(30,20,60,0.5), rgba(15,20,40,0.7)); border: 1px solid rgba(139,92,246,0.25); border-radius: 16px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .chapter-progress-info { flex: 1; min-width: 200px; }
+        .chapter-progress-label { font-size: 13px; font-weight: 600; color: #C4B5FD; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .chapter-progress-count { font-size: 22px; font-weight: 800; color: var(--text); }
+        .chapter-progress-total { font-size: 14px; color: var(--muted); }
+        .all-vo-progress { display: none; padding: 14px 18px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); border-radius: 12px; margin-top: 14px; }
+        .all-vo-progress.visible { display: block; }
+        .all-vo-label { font-size: 13px; color: #C4B5FD; font-weight: 600; margin-bottom: 8px; }
+        .chapter-card { transition: box-shadow 0.3s, border-color 0.3s; animation: fadeInUp 0.35s ease both; }
+        .chapter-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.15); }
+        .chapter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding-bottom: 14px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+        .chapter-header-left { display: flex; align-items: center; gap: 12px; }
+        .chapter-number-badge { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(59,130,246,0.2)); border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #C4B5FD; flex-shrink: 0; }
+        .chapter-title-text { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+        .chapter-header-right { display: flex; align-items: center; gap: 10px; }
+        .chapter-toggle-icon { color: var(--muted); font-size: 12px; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; }
+        .chapter-body { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
+        .chapter-body.collapsed { display: none; }
+        .script-wrapper { position: relative; }
+        .script-meta { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+        .word-counter { font-size: 11px; color: var(--faint); }
+        .copy-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .copy-btn.copied { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+        .audio-player-container { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+        .audio-player-label { font-size: 11px; font-weight: 600; color: #C4B5FD; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .chapter-audio { flex: 1; min-width: 180px; height: 36px; border-radius: 8px; accent-color: #8B5CF6; }
+        .voiceover-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .voiceover-status-msg { font-size: 13px; color: var(--muted); }
+        .premium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+        .premium-select-wrapper { position: relative; }
+        .premium-select-wrapper::after { content: "▼"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 9px; color: var(--purple); transition: transform 0.2s; }
+        .premium-select-wrapper:focus-within::after { transform: translateY(-50%) rotate(180deg); }
+        .premium-input { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 32px 10px 14px; color: var(--text); font-family: "Inter", sans-serif; font-size: 13px; font-weight: 500; outline: none; transition: all 0.25s; width: 100%; appearance: none; cursor: pointer; }
+        .premium-input:hover { background: rgba(255,255,255,0.05); border-color: rgba(139,92,246,0.4); }
+        .premium-input:focus { background: rgba(139,92,246,0.05); border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,0.18); }
+        .premium-input option { background-color: #111827; color: #F1F5F9; }
+        .premium-textarea { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 14px; color: var(--text); font-family: "Inter", sans-serif; font-size: 14px; outline: none; transition: all 0.25s; width: 100%; resize: vertical; line-height: 1.6; }
+        .premium-textarea:hover { border-color: rgba(139,92,246,0.35); }
+        .premium-textarea:focus { background: rgba(139,92,246,0.03); border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+        .global-voice-panel { background: linear-gradient(145deg, rgba(30,20,60,0.45), rgba(15,20,40,0.65)); border: 1px solid rgba(139,92,246,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04); margin-bottom: 40px; }
+        .bottom-action-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="mesh-bg">
+        <div class="mesh-bg-blob-1"></div>
+        <div class="mesh-bg-blob-2"></div>
+        <div class="mesh-bg-blob-3"></div>
+        <div class="mesh-bg-grid"></div>
+    </div>
+    {% include 'sidebar.html' %}
+    <div class="app-layout">
+        <main class="app-main">
+            {% include 'topbar.html' with page_title="Edit Project" %}
+            <form method="POST" style="max-width: 820px; margin: 0 auto;">
+                {% csrf_token %}
+
+                <!-- Progress Tracker -->
+                <div class="chapter-progress-bar animate-in">
+                    <div class="chapter-progress-info">
+                        <div class="chapter-progress-label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                            Voice Over Progress
+                        </div>
+                        <div>
+                            <span class="chapter-progress-count" id="vo-done-count">-</span>
+                            <span class="chapter-progress-total"> / {{ chapters|length }} chapters</span>
+                        </div>
+                    </div>
+                    <div style="flex: 2; min-width: 160px;">
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill" id="vo-progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--faint); margin-top: 5px;">{{ chapters|length }} total chapters</div>
+                    </div>
+                </div>
+
+                <!-- Prompt Card -->
+                <div class="glass-panel ep-card animate-in" style="animation-delay:0.05s;">
+                    <div class="field-group">
+                        <label class="field-label">Project Prompt</label>
+                        <textarea name="prompt" rows="5" class="field-textarea">{{ project.prompt }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Project Details -->
+                <div class="glass-panel ep-card animate-in" style="animation-delay:0.1s;">
+                    <h2 class="ep-section-title">Project Details</h2>
+                    <div style="display:flex;flex-direction:column;gap:18px;">
+                        <div class="field-group"><label class="field-label">Title</label><input type="text" name="title" value="{{ project.title }}" class="field-input"></div>
+                        <div class="field-group"><label class="field-label">Description</label><textarea name="description" rows="4" class="field-textarea">{{ project.description }}</textarea></div>
+                        <div class="field-group"><label class="field-label">Tags</label><input type="text" name="tags" value="{{ project.tags }}" class="field-input" placeholder="e.g. science, documentary, educational"></div>
+                        <div><button type="submit" class="btn btn-secondary btn-sm">Save Details</button></div>
+                    </div>
+                </div>
+
+                <!-- Chapters -->
+                {% for chapter in chapters %}
+                <div class="glass-panel ep-card chapter-card animate-in" data-chapter-id="{{ chapter.id }}" style="animation-delay:{{ forloop.counter }}50ms;">
+                    <div class="chapter-header" onclick="toggleChapter(this)">
+                        <div class="chapter-header-left">
+                            <div class="chapter-number-badge">{{ chapter.chapter_no }}</div>
+                            <div>
+                                <div class="chapter-title-text">{{ chapter.title|default:"Untitled Chapter" }}</div>
+                                <div style="display:flex;gap:8px;margin-top:5px;align-items:center;">
+                                    {% if chapter.current_voiceover_url %}
+                                    <span class="badge badge-green" style="font-size:10px;padding:2px 8px;"><span class="status-dot done"></span> Audio Ready</span>
+                                    {% else %}
+                                    <span class="badge badge-muted" style="font-size:10px;padding:2px 8px;"><span class="status-dot pending"></span> No Audio</span>
+                                    {% endif %}
+                                    {% if chapter.current_script %}<span class="badge badge-purple" style="font-size:10px;padding:2px 8px;">Script ✓</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chapter-header-right">
+                            <button type="submit" formaction="{% url 'delete_chapter' project.id chapter.id %}" formmethod="POST" class="btn btn-danger btn-sm" onclick="event.stopPropagation();">Delete</button>
+                            <span class="chapter-toggle-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="chapter-body">
+                        <div class="field-group"><label class="field-label">Chapter Title</label><input type="text" name="chapter_title_{{ chapter.id }}" value="{{ chapter.title }}" class="field-input"></div>
+                        <div class="field-group"><label class="field-label">Chapter Summary</label><textarea name="chapter_summary_{{ chapter.id }}" rows="3" class="field-textarea">{{ chapter.summary }}</textarea></div>
+                        <div class="field-group">
+                            <label class="field-label" style="color:#C4B5FD;">Audio Profile</label>
+                            <textarea name="chapter_audio_profile_{{ chapter.id }}" rows="2" class="premium-textarea" placeholder="E.g. A deep, resonant documentary narrator with a professional and cinematic voice.">{{ chapter.current_voiceover.audio_profile }}</textarea>
+                        </div>
+                        <div class="premium-grid">
+                            <div class="field-group"><label class="field-label">Style</label><div class="premium-select-wrapper"><select name="chapter_style_{{ chapter.id }}" class="premium-input"><option value="Neutral" {% if chapter.current_voiceover.style == "Neutral" %}selected{% endif %}>Neutral</option><option value="News" {% if chapter.current_voiceover.style == "News" %}selected{% endif %}>News</option><option value="Documentary" {% if chapter.current_voiceover.style == "Documentary" or not chapter.current_voiceover.style %}selected{% endif %}>Documentary</option><option value="Whisper" {% if chapter.current_voiceover.style == "Whisper" %}selected{% endif %}>Whisper</option><option value="Empathetic" {% if chapter.current_voiceover.style == "Empathetic" %}selected{% endif %}>Empathetic</option><option value="Promo/Hype" {% if chapter.current_voiceover.style == "Promo/Hype" %}selected{% endif %}>Promo/Hype</option><option value="Deadpan" {% if chapter.current_voiceover.style == "Deadpan" %}selected{% endif %}>Deadpan</option><option value="Conversational" {% if chapter.current_voiceover.style == "Conversational" %}selected{% endif %}>Conversational</option><option value="Dramatic" {% if chapter.current_voiceover.style == "Dramatic" %}selected{% endif %}>Dramatic</option></select></div></div>
+                            <div class="field-group"><label class="field-label">Pace</label><div class="premium-select-wrapper"><select name="chapter_pace_{{ chapter.id }}" class="premium-input"><option value="Natural" {% if chapter.current_voiceover.pace == "Natural" or not chapter.current_voiceover.pace %}selected{% endif %}>Natural</option><option value="Rapid Fire" {% if chapter.current_voiceover.pace == "Rapid Fire" %}selected{% endif %}>Rapid Fire</option><option value="The Drift" {% if chapter.current_voiceover.pace == "The Drift" %}selected{% endif %}>The Drift</option><option value="Staccato" {% if chapter.current_voiceover.pace == "Staccato" %}selected{% endif %}>Staccato</option></select></div></div>
+                            <div class="field-group"><label class="field-label">Accent</label><div class="premium-select-wrapper"><select name="chapter_accent_{{ chapter.id }}" class="premium-input"><option value="Neutral" {% if chapter.current_voiceover.accent == "Neutral" %}selected{% endif %}>Neutral</option><option value="American (Gen)" {% if chapter.current_voiceover.accent == "American (Gen)" %}selected{% endif %}>American (Gen)</option><option value="American (Valley)" {% if chapter.current_voiceover.accent == "American (Valley)" %}selected{% endif %}>American (Valley)</option><option value="American (South)" {% if chapter.current_voiceover.accent == "American (South)" %}selected{% endif %}>American (South)</option><option value="British (RP)" {% if chapter.current_voiceover.accent == "British (RP)" or not chapter.current_voiceover.accent %}selected{% endif %}>British (RP)</option><option value="British (Brixton)" {% if chapter.current_voiceover.accent == "British (Brixton)" %}selected{% endif %}>British (Brixton)</option><option value="Transatlantic" {% if chapter.current_voiceover.accent == "Transatlantic" %}selected{% endif %}>Transatlantic</option><option value="Australian" {% if chapter.current_voiceover.accent == "Australian" %}selected{% endif %}>Australian</option></select></div></div>
+                            <div class="field-group"><label class="field-label" style="color:#C4B5FD;">Voice</label><div class="premium-select-wrapper"><select name="chapter_voice_{{ chapter.id }}" class="premium-input voice-select"><option value="Kore" {% if chapter.current_voiceover.voice_name == "Kore" or not chapter.current_voiceover.voice_name %}selected{% endif %}>Kore (Default)</option><option value="Aoede" {% if chapter.current_voiceover.voice_name == "Aoede" %}selected{% endif %}>Aoede</option><option value="Charon" {% if chapter.current_voiceover.voice_name == "Charon" %}selected{% endif %}>Charon</option><option value="Fenrir" {% if chapter.current_voiceover.voice_name == "Fenrir" %}selected{% endif %}>Fenrir</option><option value="Puck" {% if chapter.current_voiceover.voice_name == "Puck" %}selected{% endif %}>Puck</option></select></div></div>
+                        </div>
+                        <div class="field-group" style="margin-top:4px;">
+                            <label class="field-label">Script Duration</label>
+                            <div class="premium-select-wrapper" style="max-width:200px;">
+                                <select class="premium-input duration-select"><option value="20 seconds" {% if chapter.current_duration == "20 seconds" %}selected{% endif %}>20 seconds</option><option value="30 seconds" {% if chapter.current_duration == "30 seconds" %}selected{% endif %}>30 seconds</option><option value="45 seconds" {% if chapter.current_duration == "45 seconds" %}selected{% endif %}>45 seconds</option><option value="1 minute" {% if chapter.current_duration == "1 minute" or not chapter.current_duration %}selected{% endif %}>1 minute</option><option value="1 minute 30 seconds" {% if chapter.current_duration == "1 minute 30 seconds" %}selected{% endif %}>1 min 30 sec</option><option value="2 minutes" {% if chapter.current_duration == "2 minutes" %}selected{% endif %}>2 minutes</option><option value="3 minutes" {% if chapter.current_duration == "3 minutes" %}selected{% endif %}>3 minutes</option><option value="5 minutes" {% if chapter.current_duration == "5 minutes" %}selected{% endif %}>5 minutes</option></select>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Generated Script</label>
+                            <div class="script-wrapper">
+                                <textarea name="chapter_script_{{ chapter.id }}" rows="8" class="premium-textarea script-textarea" oninput="updateWordCount(this)" placeholder="Generated script will appear here...">{{ chapter.current_script }}</textarea>
+                                <div class="script-meta">
+                                    <span class="word-counter" id="wc-{{ chapter.id }}">{% if chapter.current_script %}{{ chapter.current_script|wordcount }} words{% else %}0 words{% endif %}</span>
+                                    <button type="button" class="copy-btn" onclick="copyScript(this, '{{ chapter.id }}')">&#x2398; Copy Script</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="voiceover-section">
+                            <div class="voiceover-actions">
+                                <button type="button" class="btn btn-primary btn-sm btn-generate-voiceover" onclick="generateVoiceOver('{{ project.id }}', '{{ chapter.id }}', this)">&#127908; Generate Voice Over</button>
+                                <span class="voiceover-status-msg"></span>
+                            </div>
+                            {% if chapter.voiceover_is_stale %}<div class="stale-warning">&#9888;&#65039; Script was edited after voice-over was generated. Regenerate to sync audio.</div>{% endif %}
+                            <div class="audio-player-container" {% if not chapter.current_voiceover_url %}style="display:none;"{% endif %}>
+                                <div class="audio-player-label">&#128266; Audio</div>
+                                <audio controls class="chapter-audio" {% if chapter.current_voiceover_url %}src="{{ chapter.current_voiceover_url }}"{% endif %}></audio>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border);">
+                            <button type="submit" class="btn btn-ghost btn-sm">Save Chapter</button>
+                            <button type="button" class="btn btn-secondary btn-sm btn-generate-script" onclick="generateScript('{{ project.id }}', '{{ chapter.id }}', this)">&#10024; Generate Script</button>
+                            <span class="status-msg" style="font-size:13px;color:var(--muted);"></span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Global Voice Settings -->
+                <div class="glass-panel ep-card global-voice-panel animate-in">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">
+                        <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(59,130,246,0.2));border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;">&#127908;</div>
+                        <div>
+                            <h3 class="ep-section-title" style="margin:0;border-bottom:none;padding-bottom:0;font-size:17px;">Global Voice Settings</h3>
+                            <p style="font-size:12px;color:var(--muted);margin-top:2px;">Apply one voice profile to all chapters at once</p>
+                        </div>
+                    </div>
+                    <div class="premium-grid" style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);">
+                        <div class="field-group"><label class="field-label">Style</label><div class="premium-select-wrapper"><select id="global_style" class="premium-input"><option value="Neutral">Neutral</option><option value="News">News</option><option value="Documentary" selected>Documentary</option><option value="Whisper">Whisper</option><option value="Empathetic">Empathetic</option><option value="Promo/Hype">Promo/Hype</option><option value="Deadpan">Deadpan</option><option value="Conversational">Conversational</option><option value="Dramatic">Dramatic</option></select></div></div>
+                        <div class="field-group"><label class="field-label">Pace</label><div class="premium-select-wrapper"><select id="global_pace" class="premium-input"><option value="Natural" selected>Natural</option><option value="Rapid Fire">Rapid Fire</option><option value="The Drift">The Drift</option><option value="Staccato">Staccato</option></select></div></div>
+                        <div class="field-group"><label class="field-label">Accent</label><div class="premium-select-wrapper"><select id="global_accent" class="premium-input"><option value="Neutral">Neutral</option><option value="American (Gen)">American (Gen)</option><option value="American (Valley)">American (Valley)</option><option value="American (South)">American (South)</option><option value="British (RP)" selected>British (RP)</option><option value="British (Brixton)">British (Brixton)</option><option value="Transatlantic">Transatlantic</option><option value="Australian">Australian</option></select></div></div>
+                        <div class="field-group"><label class="field-label" style="color:#C4B5FD;">Voice</label><div class="premium-select-wrapper"><select id="global_voice" class="premium-input"><option value="Kore" selected>Kore (Default)</option><option value="Aoede">Aoede</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option><option value="Puck">Puck</option></select></div></div>
+                        <div class="field-group" style="display:flex;align-items:flex-end;"><button type="button" class="btn btn-secondary btn-full" style="height:42px;" onclick="applyGlobalVoiceSettings()">Apply to All Chapters</button></div>
+                    </div>
+                    <div class="bottom-action-row">
+                        <a href="{% url 'visual_studio_project' project.id %}" class="btn btn-secondary btn-lg">&#127916; Open Visual Studio</a>
+                        <button type="button" class="btn btn-secondary btn-lg btn-generate-all" onclick="generateAllScripts('{{ project.id }}')">&#10024; Generate All Scripts</button>
+                        <button type="button" class="btn btn-primary btn-lg btn-generate-all-voiceovers" onclick="generateAllVoiceOvers('{{ project.id }}')">&#127908; Generate All Voice Overs</button>
+                        <button type="submit" class="btn btn-ghost btn-lg">Save All</button>
+                        <a href="{% url 'projects' %}" class="btn btn-ghost btn-lg">Cancel</a>
+                    </div>
+                    <div class="all-vo-progress" id="all-vo-progress">
+                        <div class="all-vo-label" id="all-vo-label">Starting...</div>
+                        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="all-vo-bar" style="width:0%;"></div></div>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <div id="toast-notification" class="toast-notification"><span>&#10024;</span><span id="toast-message"></span></div>
+
+    <script>
+        function showToast(msg, type) {
+            var t = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = msg;
+            t.style.background = type === 'error' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#8B5CF6,#3B82F6)';
+            t.classList.add('show');
+            setTimeout(function(){ t.classList.remove('show'); }, 4000);
+        }
+
+        function toggleChapter(h) {
+            var b = h.nextElementSibling;
+            var icon = h.querySelector('.chapter-toggle-icon');
+            if (b.classList.contains('collapsed')) { b.classList.remove('collapsed'); icon.style.transform = 'rotate(0deg)'; }
+            else { b.classList.add('collapsed'); icon.style.transform = 'rotate(-90deg)'; }
+        }
+
+        function updateWordCount(ta) {
+            var card = ta.closest('.chapter-card');
+            var id = card.getAttribute('data-chapter-id');
+            var el = document.getElementById('wc-' + id);
+            if (!el) return;
+            var w = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+            el.textContent = w + ' words';
+        }
+
+        function copyScript(btn, id) {
+            var ta = document.querySelector('textarea[name="chapter_script_' + id + '"]');
+            if (!ta || !ta.value.trim()) return;
+            navigator.clipboard.writeText(ta.value).then(function() {
+                btn.classList.add('copied'); btn.textContent = '✓ Copied!';
+                setTimeout(function(){ btn.classList.remove('copied'); btn.textContent = '⎘ Copy Script'; }, 2000);
+            });
+        }
+
+        function getCookie(n) {
+            var v = null;
+            if (document.cookie) { document.cookie.split(';').forEach(function(c){ var t = c.trim(); if (t.startsWith(n+'=')) v = decodeURIComponent(t.substring(n.length+1)); }); }
+            return v;
+        }
+
+        async function generateScript(pid, cid, btn, force) {
+            if (force === undefined) force = true;
+            var card = btn.closest('.chapter-card');
+            var ds = card.querySelector('.duration-select');
+            var ta = card.querySelector('.script-textarea');
+            var sm = card.querySelector('.status-msg');
+            if (!force && ta.value.trim()) { sm.textContent = 'Skipped (script exists).'; sm.style.color = 'var(--muted)'; return; }
+            btn.disabled = true; var orig = btn.innerHTML; btn.innerHTML = '<span class="spinner"></span> Generating...'; sm.textContent = '';
+            try {
+                var r = await fetch('/project/'+pid+'/generate_script/'+cid+'/', { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, body: JSON.stringify({duration: ds.value}) });
+                var d = await r.json();
+                if (r.ok && d.success) { ta.value = d.script; updateWordCount(ta); sm.textContent = '✓ Script generated!'; sm.style.color = '#4ade80'; }
+                else { sm.textContent = 'Error: ' + (d.error || 'Unknown.'); sm.style.color = '#f87171'; }
+            } catch(e) { sm.textContent = 'Network error: ' + e.message; sm.style.color = '#f87171'; }
+            finally { btn.disabled = false; btn.innerHTML = orig; }
+        }
+
+        async function generateAllScripts(pid) {
+            var btn = document.querySelector('.btn-generate-all');
+            var cards = Array.from(document.querySelectorAll('.chapter-card'));
+            btn.disabled = true; var orig = btn.innerHTML;
+            for (var i = 0; i < cards.length; i++) {
+                btn.innerHTML = '<span class="spinner"></span> Script ' + (i+1) + '/' + cards.length + '...';
+                var bg = cards[i].querySelector('.btn-generate-script');
+                var cid = cards[i].getAttribute('data-chapter-id');
+                await generateScript(pid, cid, bg, false);
+            }
+            btn.disabled = false; btn.innerHTML = orig;
+            showToast('All scripts generated!');
+        }
+
+        async function generateVoiceOver(pid, cid, btn) {
+            var card = btn.closest('.chapter-card');
+            var sm = card.querySelector('.voiceover-status-msg');
+            var ac = card.querySelector('.audio-player-container');
+            var ae = card.querySelector('.chapter-audio');
+            var ap = card.querySelector(`textarea[name="chapter_audio_profile_${cid}"]`).value;
+            var st = card.querySelector(`select[name="chapter_style_${cid}"]`).value;
+            var pa = card.querySelector(`select[name="chapter_pace_${cid}"]`).value;
+            var acc = card.querySelector(`select[name="chapter_accent_${cid}"]`).value;
+            var vn = card.querySelector(`select[name="chapter_voice_${cid}"]`).value;
+            btn.disabled = true; var orig = btn.innerHTML; btn.innerHTML = '<span class="spinner"></span> Generating...';
+            sm.textContent = 'This may take a minute...'; sm.style.color = 'var(--muted)';
+            try {
+                var r = await fetch('/project/'+pid+'/generate_voiceover/'+cid+'/', { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, body: JSON.stringify({audio_profile:ap, style:st, pace:pa, accent:acc, voice_name:vn}) });
+                var d = await r.json();
+                if (r.ok && d.success) {
+                    ae.src = d.audio_url + '?t=' + Date.now(); ac.style.display = 'flex';
+                    sm.textContent = '✓ Voice Over generated!'; sm.style.color = '#4ade80';
+                    var badges = card.querySelectorAll('.badge');
+                    if (badges[0]) { badges[0].className = 'badge badge-green'; badges[0].innerHTML = '<span class="status-dot done"></span> Audio Ready'; }
+                    updateProgressTracker();
+                } else { sm.textContent = 'Error: ' + (d.error || 'Unknown.'); sm.style.color = '#f87171'; }
+            } catch(e) { sm.textContent = 'Network error: ' + e.message; sm.style.color = '#f87171'; }
+            finally { btn.disabled = false; btn.innerHTML = orig; }
+        }
+
+        async function generateAllVoiceOvers(pid) {
+            var btn = document.querySelector('.btn-generate-all-voiceovers');
+            var cards = Array.from(document.querySelectorAll('.chapter-card'));
+            var pb = document.getElementById('all-vo-progress');
+            var pl = document.getElementById('all-vo-label');
+            var pbar = document.getElementById('all-vo-bar');
+            btn.disabled = true; var orig = btn.innerHTML; pb.classList.add('visible');
+            for (var i = 0; i < cards.length; i++) {
+                var pct = Math.round((i / cards.length) * 100);
+                pbar.style.width = pct + '%'; pl.textContent = 'Generating Chapter ' + (i+1) + ' of ' + cards.length + '...';
+                btn.innerHTML = '<span class="spinner"></span> ' + (i+1) + '/' + cards.length;
+                var bg = cards[i].querySelector('.btn-generate-voiceover');
+                var cid = cards[i].getAttribute('data-chapter-id');
+                await generateVoiceOver(pid, cid, bg);
+            }
+            pbar.style.width = '100%'; pl.textContent = '✓ All chapters done!';
+            setTimeout(function(){ pb.classList.remove('visible'); pbar.style.width = '0%'; }, 3000);
+            btn.disabled = false; btn.innerHTML = orig;
+            showToast('All voice overs generated!');
+        }
+
+        function updateProgressTracker() {
+            var cards = document.querySelectorAll('.chapter-card');
+            var done = 0;
+            cards.forEach(function(c){ var a = c.querySelector('.chapter-audio'); if (a && a.src && a.src.length > 10) done++; });
+            var fill = document.getElementById('vo-progress-fill');
+            var cnt = document.getElementById('vo-done-count');
+            if (fill) fill.style.width = Math.round((done / cards.length) * 100) + '%';
+            if (cnt) cnt.textContent = done;
+        }
+
+        function applyGlobalVoiceSettings() {
+            var st = document.getElementById('global_style').value;
+            var pa = document.getElementById('global_pace').value;
+            var ac = document.getElementById('global_accent').value;
+            var vo = document.getElementById('global_voice').value;
+            document.querySelectorAll('.chapter-card').forEach(function(card) {
+                var id = card.getAttribute('data-chapter-id');
+                var s = card.querySelector('select[name="chapter_style_' + id + '"]');
+                var p = card.querySelector('select[name="chapter_pace_' + id + '"]');
+                var a = card.querySelector('select[name="chapter_accent_' + id + '"]');
+                var v = card.querySelector('select[name="chapter_voice_' + id + '"]');
+                if (s) s.value = st; if (p) p.value = pa; if (a) a.value = ac; if (v) v.value = vo;
+            });
+            showToast('Global voice settings applied!');
+        }
+
+        // Init progress tracker on page load
+        window.addEventListener('DOMContentLoaded', updateProgressTracker);
+    </script>
+</body>
+</html>

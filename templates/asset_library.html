@@ -1,0 +1,582 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if selected_project %}Asset Library — {{ selected_project.title }}{% else %}Asset Library{% endif %} | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=10">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ── Project Switcher Bar ── */
+        .project-switcher {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 22px;
+            position: relative;
+            z-index: 100;
+        }
+        /* Header */
+        .al-header {
+            background: linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(34,211,238,0.08) 100%);
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 20px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .al-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .al-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 40px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .al-stat-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+        .chapter-accordion {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            transition: border-color 0.2s ease;
+        }
+        .chapter-accordion:hover { border-color: rgba(139,92,246,0.3); }
+        .chapter-accordion.open {
+            border-color: rgba(139,92,246,0.45);
+            box-shadow: 0 0 0 1px rgba(139,92,246,0.15);
+        }
+        .chapter-header {
+            display: flex; align-items: center; gap: 16px;
+            padding: 18px 24px;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer; user-select: none;
+            transition: background 0.2s ease;
+        }
+        .chapter-header:hover { background: rgba(255,255,255,0.06); }
+        .chapter-accordion.open .chapter-header {
+            background: rgba(139,92,246,0.08);
+            border-bottom: 1px solid rgba(139,92,246,0.2);
+        }
+        .chapter-number {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, #8B5CF6, #6366F1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+        .chapter-title-block { flex: 1; min-width: 0; }
+        .chapter-title-text {
+            font-size: 15px; font-weight: 700; color: #f1f5f9;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .chapter-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .chapter-badges { display: flex; gap: 6px; flex-shrink: 0; }
+        .asset-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+        }
+        .badge-img { background: rgba(34,211,238,0.12); color: #22D3EE; border: 1px solid rgba(34,211,238,0.25); }
+        .badge-vo { background: rgba(16,185,129,0.12); color: #10B981; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-vid { background: rgba(139,92,246,0.12); color: #A78BFA; border: 1px solid rgba(139,92,246,0.25); }
+        .badge-empty { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
+        .chapter-chevron { color: var(--muted); transition: transform 0.25s ease; flex-shrink: 0; }
+        .chapter-accordion.open .chapter-chevron { transform: rotate(180deg); }
+        .chapter-body { display: none; padding: 24px; background: rgba(255,255,255,0.015); }
+        .chapter-accordion.open .chapter-body { display: block; }
+        .asset-section-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--muted);
+            margin: 0 0 12px 0; padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .vo-player-row {
+            display: flex; align-items: center; gap: 14px;
+            background: rgba(16,185,129,0.06);
+            border: 1px solid rgba(16,185,129,0.15);
+            border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;
+        }
+        .vo-player-row audio { flex: 1; height: 36px; }
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 12px; margin-bottom: 20px;
+        }
+        .scene-card {
+            border-radius: 12px; overflow: hidden;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            position: relative;
+        }
+        .scene-card:hover { transform: translateY(-2px); border-color: rgba(139,92,246,0.4); }
+        .scene-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+        .scene-card-footer {
+            padding: 9px 11px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .scene-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+        .scene-actions { display: flex; gap: 4px; }
+        .icon-btn {
+            width: 26px; height: 26px; border-radius: 7px;
+            background: rgba(255,255,255,0.07); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); transition: background 0.15s, color 0.15s;
+            text-decoration: none;
+        }
+        .icon-btn:hover { background: rgba(139,92,246,0.25); color: #A78BFA; }
+        .icon-btn.anim-done { color: #A78BFA; background: rgba(139,92,246,0.15); }
+        .no-image-placeholder {
+            aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.03); color: var(--faint); font-size: 11px;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px; margin-bottom: 20px;
+        }
+        .video-card {
+            border-radius: 12px; overflow: hidden;
+            background: rgba(139,92,246,0.04);
+            border: 1px solid rgba(139,92,246,0.2);
+            transition: transform 0.2s ease;
+        }
+        .video-card:hover { transform: translateY(-2px); border-color: rgba(139,92,246,0.5); }
+        .video-card video { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #000; }
+        .video-card-footer {
+            padding: 9px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .chapter-download-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 12px 18px; margin-top: 14px;
+        }
+        .cat-tabs-bar {
+            display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px;
+        }
+        .cat-tab {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            color: var(--muted); border-radius: 30px; padding: 7px 16px; font-size: 12px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+        }
+        .cat-tab:hover { background: rgba(255,255,255,0.07); color: #fff; }
+        .cat-tab.active {
+            background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5);
+            color: #A78BFA; box-shadow: 0 0 12px rgba(139,92,246,0.2);
+        }
+        .editors-banner {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px; padding: 28px; margin-top: 36px;
+            text-align: center; backdrop-filter: blur(10px);
+        }
+        .editor-logos {
+            display: flex; align-items: center; justify-content: center;
+            gap: 20px; margin-top: 18px; flex-wrap: wrap;
+        }
+        .editor-logo-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 30px; padding: 7px 16px; font-size: 12px;
+            font-weight: 600; color: #cbd5e1;
+        }
+        .compare-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 99999; display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .compare-dialog {
+            background: #0f111a; border: 1px solid rgba(139,92,246,0.4);
+            border-radius: 20px; width: 100%; max-width: 900px;
+            overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+        }
+        .compare-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+        }
+        .compare-close {
+            background: none; border: none; color: var(--muted);
+            font-size: 24px; cursor: pointer; padding: 4px; line-height: 1;
+        }
+        .compare-close:hover { color: #fff; }
+        .compare-split {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 22px;
+        }
+        @media (max-width: 768px) {
+            .compare-split { grid-template-columns: 1fr; }
+        }
+        .compare-pane { display: flex; flex-direction: column; gap: 8px; }
+        .compare-pane-label {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--muted);
+        }
+        .compare-pane img, .compare-pane video {
+            width: 100%; aspect-ratio: 16/9; object-fit: cover;
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #000;
+        }
+        .compare-footer {
+            display: flex; justify-content: flex-end; gap: 12px;
+            padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.015);
+        }
+    </style>
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+{% include 'sidebar.html' %}
+
+<div class="app-layout">
+<main class="app-main">
+
+    {% include 'topbar.html' with page_title="Asset Library" %}
+
+    {% if selected_project %}
+    <!-- ═══ PROJECT SELECTED VIEW ═══ -->
+
+    <!-- Project Switcher -->
+    <div class="project-switcher">
+        <div style="font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;">Project:</div>
+        <div class="custom-select-wrap" id="customProjectSelect">
+            <div class="custom-select-trigger" onclick="toggleProjectSelect()">
+                <span id="customSelectLabel">{% if selected_project.title %}{{ selected_project.title }}{% else %}Project #{{ selected_project.id }}{% endif %}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="custom-select-list" id="customSelectList">
+                {% for proj in projects %}
+                <div class="custom-select-option {% if proj.id == selected_project.id %}selected{% endif %}"
+                     onclick="window.location='/asset-library/{{ proj.id }}/'">
+                    {% if proj.title %}{{ proj.title }}{% else %}Project #{{ proj.id }}{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <a href="{% url 'asset_library_index' %}" class="btn btn-ghost btn-sm" style="white-space:nowrap;">← All Projects Overview</a>
+    </div>
+
+    <!-- Project Header -->
+    <div class="al-header">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#8B5CF6;margin-bottom:8px;">📦 Asset Library</div>
+                <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#fff;margin:0 0 14px 0;line-height:1.2;">{% if selected_project.title %}{{ selected_project.title }}{% else %}{{ selected_project.prompt }}{% endif %}</h1>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <span class="al-stat-pill"><span class="dot" style="background:#8B5CF6;"></span>{{ total_chapters }} Chapter{{ total_chapters|pluralize }}</span>
+                    <span class="al-stat-pill"><span class="dot" style="background:#22D3EE;"></span>{{ total_images }} Image{{ total_images|pluralize }}</span>
+                    <span class="al-stat-pill"><span class="dot" style="background:#10B981;"></span>{{ total_voiceovers }} Voiceover{{ total_voiceovers|pluralize }}</span>
+                    {% if total_videos > 0 %}<span class="al-stat-pill"><span class="dot" style="background:#A78BFA;"></span>{{ total_videos }} Animated Clip{{ total_videos|pluralize }}</span>{% endif %}
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+                {% if total_assets > 0 %}
+                <a href="{% url 'api_download_project_package' selected_project.id %}" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:14px;padding:12px 22px;white-space:nowrap;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download Full Project (ZIP)
+                </a>
+                <div style="font-size:11px;color:var(--muted);text-align:right;">Scripts · Voiceovers · Images · Video Clips</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if total_assets > 0 %}
+    <!-- Asset Category Filter Bar -->
+    <div class="cat-tabs-bar">
+        <button type="button" class="cat-tab active" onclick="filterCategory('all', this)">All Assets</button>
+        <button type="button" class="cat-tab" onclick="filterCategory('images', this)">🖼 Images ({{ total_images }})</button>
+        <button type="button" class="cat-tab" onclick="filterCategory('voiceovers', this)">🎙 Voiceovers ({{ total_voiceovers }})</button>
+        <button type="button" class="cat-tab" onclick="filterCategory('videos', this)">🎬 Animated Clips ({{ total_videos }})</button>
+        <button type="button" class="cat-tab" onclick="filterCategory('scripts', this)">📝 Scripts ({{ total_scripts }})</button>
+    </div>
+
+    <!-- Chapter Accordions -->
+    <div id="chapterList">
+        {% for cd in chapter_data %}
+        <div class="chapter-accordion {% if forloop.first %}open{% endif %}" id="chapter-acc-{{ cd.chapter.id }}">
+            <div class="chapter-header" onclick="toggleChapter({{ cd.chapter.id }})">
+                <div class="chapter-number">{{ cd.chapter.chapter_no }}</div>
+                <div class="chapter-title-block">
+                    <div class="chapter-title-text">{{ cd.chapter.title }}</div>
+                    <div class="chapter-meta">{{ cd.scene_count }} scene{{ cd.scene_count|pluralize }}{% if cd.script %} · {{ cd.script.word_count }} words{% endif %}</div>
+                </div>
+                <div class="chapter-badges">
+                    {% if cd.image_count > 0 %}<span class="asset-badge badge-img">🖼 {{ cd.image_count }}</span>{% else %}<span class="asset-badge badge-empty">No images</span>{% endif %}
+                    {% if cd.voiceover %}<span class="asset-badge badge-vo">🎙 Audio</span>{% endif %}
+                    {% if cd.video_count > 0 %}<span class="asset-badge badge-vid">🎬 {{ cd.video_count }} clips</span>{% endif %}
+                </div>
+                <svg class="chapter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="chapter-body">
+
+                {% if cd.script %}
+                <div class="asset-cat-sec" data-cat="scripts" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px 16px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <div style="flex:1;">
+                        <div style="font-size:13px;font-weight:600;color:#f1f5f9;">Script Ready</div>
+                        <div style="font-size:11px;color:var(--muted);">{{ cd.script.word_count }} words</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if cd.voiceover and cd.voiceover.audio_file %}
+                <div class="asset-cat-sec" data-cat="voiceovers">
+                <div class="asset-section-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="23"/></svg>
+                    Voiceover
+                </div>
+                <div class="vo-player-row">
+                    <audio controls src="{{ cd.voiceover.audio_file.url }}" style="flex:1;min-width:0;"></audio>
+                    <a href="{{ cd.voiceover.audio_file.url }}" download class="btn btn-ghost btn-sm" style="text-decoration:none;white-space:nowrap;font-size:12px;">⬇ MP3</a>
+                </div>
+                </div>
+                {% endif %}
+
+                {% if cd.scenes %}
+                <div class="asset-cat-sec" data-cat="images">
+                <div class="asset-section-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Scene Images ({{ cd.image_count }}/{{ cd.scene_count }})
+                </div>
+                <div class="scene-grid">
+                    {% for scene in cd.scenes %}
+                    <div class="scene-card">
+                        {% if scene.image and scene.image.image_file %}<img src="{{ scene.image.image_file.url }}" alt="Scene {{ scene.prompt.prompt_number }}" loading="lazy">{% else %}<div class="no-image-placeholder">Scene {{ scene.prompt.prompt_number }}</div>{% endif %}
+                        <div class="scene-card-footer">
+                            <span class="scene-label">Scene {{ scene.prompt.prompt_number }}</span>
+                            <div class="scene-actions">
+                                {% if scene.image and scene.image.image_file %}<a href="{{ scene.image.image_file.url }}" download class="icon-btn" title="Download"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></a>{% endif %}
+                                {% if scene.anim_video and scene.anim_video.video_file %}<button type="button" class="icon-btn anim-done" onclick="openCompareModal('Scene {{ scene.prompt.prompt_number }}', 'CH {{ cd.chapter.chapter_no }} - {{ cd.chapter.title|escapejs }}', '{{ scene.image.image_file.url }}', '{{ scene.anim_video.video_file.url }}')" title="Compare with Video"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                </div>
+
+                {% if cd.video_count > 0 %}
+                <div class="asset-cat-sec" data-cat="videos">
+                <div class="asset-section-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Animated Clips ({{ cd.video_count }})
+                </div>
+                <div class="video-grid">
+                    {% for scene in cd.scenes %}{% if scene.anim_video and scene.anim_video.video_file %}
+                    <div class="video-card">
+                        <video src="{{ scene.anim_video.video_file.url }}" controls muted playsinline preload="metadata"></video>
+                        <div class="video-card-footer">
+                            <span class="scene-label">Scene {{ scene.prompt.prompt_number }}</span>
+                            <a href="{{ scene.anim_video.video_file.url }}" download class="icon-btn" title="Download MP4"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></a>
+                        </div>
+                    </div>
+                    {% endif %}{% endfor %}
+                </div>
+                </div>
+                {% else %}
+                <div style="padding:20px;text-align:center;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:12px;margin-bottom:20px;">
+                    <div style="font-size:24px;margin-bottom:8px;opacity:0.3;">🎬</div>
+                    <p style="margin:0;color:var(--muted);font-size:13px;">No animated clips yet for this chapter.</p>
+                    <a href="{% url 'animation_studio' selected_project.id %}" class="btn btn-ghost btn-sm" style="margin-top:12px;text-decoration:none;display:inline-block;">Animate in Studio →</a>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <div class="chapter-download-bar">
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:#f1f5f9;">Chapter {{ cd.chapter.chapter_no }} Asset Package</div>
+                        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Script · Voiceover · {{ cd.image_count }} image{{ cd.image_count|pluralize }}{% if cd.video_count > 0 %} · {{ cd.video_count }} video{{ cd.video_count|pluralize }}{% endif %}</div>
+                    </div>
+                    <a href="{% url 'api_download_chapter_package' cd.chapter.id %}" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:7px;text-decoration:none;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        Download ZIP
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Editing Software Banner -->
+    <div class="editors-banner">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#22D3EE;margin-bottom:10px;">Export to Your Editor</div>
+        <p style="color:#94a3b8;font-size:14px;max-width:580px;margin:0 auto;">Download your asset packages and drag them into your preferred editing software. All standard formats: <strong style="color:#cbd5e1;">.txt</strong> scripts, <strong style="color:#cbd5e1;">.mp3/.wav</strong> voiceovers, <strong style="color:#cbd5e1;">.jpg/.png</strong> images, <strong style="color:#cbd5e1;">.mp4</strong> animated clips.</p>
+        <div class="editor-logos">
+            <div class="editor-logo-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>DaVinci Resolve</div>
+            <div class="editor-logo-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Adobe Premiere Pro</div>
+            <div class="editor-logo-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>CapCut</div>
+            <div class="editor-logo-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Final Cut Pro</div>
+            <div class="editor-logo-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>After Effects</div>
+        </div>
+    </div>
+    {% else %}
+    <!-- ═══ EMPTY STATE WHEN PROJECT HAS NO ASSETS ═══ -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:60px 30px;text-align:center;margin-top:20px;">
+        <div style="width:64px;height:64px;border-radius:20px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:30px;">📦</div>
+        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:10px;">No Production Assets Available Yet</h2>
+        <p style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto 24px;line-height:1.6;">
+            This project has no generated scripts, voiceovers, images, or animated clips available yet. Generate assets in the workspace to inspect and download them here.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a href="{% url 'edit_project' selected_project.id %}" class="btn btn-primary" style="text-decoration:none;">Generate Script →</a>
+            <a href="{% url 'visual_studio_project' selected_project.id %}" class="btn btn-secondary" style="text-decoration:none;">Generate Images &amp; Videos →</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- ═══ OVERVIEW GRID (NO PROJECT SELECTED) ═══ -->
+    <div class="al-header">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#8B5CF6;margin-bottom:8px;">📦 Asset Library Overview</div>
+        <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#fff;margin:0 0 8px 0;">Select a Project to View Assets</h1>
+        <p style="color:var(--muted);font-size:14px;margin:0;">Choose a project below to browse, inspect, and export its generated video production assets.</p>
+    </div>
+
+    {% if projects_summary %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:20px;margin-bottom:32px;">
+        {% for ps in projects_summary %}
+        <div class="glass-panel" style="padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:20px;border-radius:18px;position:relative;overflow:hidden;transition:all 0.25s;">
+            <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <span class="badge badge-purple">🎬 {{ ps.chapter_count }} Chapter{{ ps.chapter_count|pluralize }}</span>
+                    <span style="font-size:11px;color:var(--faint);">{{ ps.project.created_at|date:"M d, Y" }}</span>
+                </div>
+                <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                    {% if ps.project.title %}{{ ps.project.title }}{% else %}{{ ps.project.prompt }}{% endif %}
+                </h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;">
+                    {{ ps.project.description|default:ps.project.prompt }}
+                </p>
+            </div>
+            <div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:16px;font-size:12px;">
+                    <div style="color:var(--muted);">📝 Scripts: <strong style="color:#fff;">{{ ps.script_count }}</strong></div>
+                    <div style="color:var(--muted);">🎙 Voiceovers: <strong style="color:#fff;">{{ ps.vo_count }}</strong></div>
+                    <div style="color:var(--muted);">🖼 Images: <strong style="color:#fff;">{{ ps.image_count }}</strong></div>
+                    <div style="color:var(--muted);">🎬 Videos: <strong style="color:#fff;">{{ ps.video_count }}</strong></div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <a href="{% url 'asset_library' ps.project.id %}" class="btn btn-primary btn-sm btn-full" style="text-decoration:none;">Open Asset Library →</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:60px 30px;text-align:center;">
+        <div style="font-size:48px;opacity:0.2;margin-bottom:16px;">🎬</div>
+        <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;">No Projects Created Yet</h3>
+        <p style="color:var(--muted);font-size:14px;max-width:400px;margin:0 auto 20px;">Create your first video project to generate scripts, voiceovers, images, and video clips.</p>
+        <a href="{% url 'create_project' %}" class="btn btn-primary" style="text-decoration:none;">+ Create New Project</a>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</main>
+</div>
+
+<script>
+function toggleChapter(chId) {
+    const acc = document.getElementById('chapter-acc-' + chId);
+    const wasOpen = acc.classList.contains('open');
+    document.querySelectorAll('.chapter-accordion').forEach(a => a.classList.remove('open'));
+    if (!wasOpen) acc.classList.add('open');
+}
+</script>
+
+<!-- Media Comparison Modal -->
+<div id="media-compare-modal" class="compare-modal" style="display:none;" onclick="closeCompareModal(event)">
+    <div class="compare-dialog" onclick="event.stopPropagation()">
+        <div class="compare-header">
+            <div>
+                <h3 id="compare-title" style="margin:0; font-size:16px; color:#fff; font-weight:700;">Scene Comparison</h3>
+                <div id="compare-meta" style="font-size:12px; color:var(--muted); margin-top:3px;"></div>
+            </div>
+            <button class="compare-close" onclick="closeCompareModal()">&times;</button>
+        </div>
+        <div class="compare-split">
+            <div class="compare-pane">
+                <span class="compare-pane-label">📷 Original Image</span>
+                <img id="compare-img" src="" alt="Original Image">
+            </div>
+            <div class="compare-pane">
+                <span class="compare-pane-label">🎬 AI Animated Video (Veo)</span>
+                <video id="compare-vid" src="" controls autoplay loop muted playsinline></video>
+            </div>
+        </div>
+        <div class="compare-footer">
+            <a id="compare-dl-img" href="" download class="btn btn-secondary btn-sm">⬇ Download Image</a>
+            <a id="compare-dl-vid" href="" download class="btn btn-primary btn-sm">⬇ Download MP4</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterCategory(cat, btn) {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const sections = document.querySelectorAll('.asset-cat-sec');
+    sections.forEach(sec => {
+        if (cat === 'all') {
+            sec.style.display = '';
+        } else {
+            if (sec.getAttribute('data-cat') === cat) {
+                sec.style.display = '';
+            } else {
+                sec.style.display = 'none';
+            }
+        }
+    });
+}
+
+function openCompareModal(sceneLabel, chTitle, imgUrl, vidUrl) {
+    document.getElementById('compare-title').innerText = sceneLabel + ' — ' + chTitle;
+    document.getElementById('compare-meta').innerText = 'Side-by-side asset comparison';
+    document.getElementById('compare-img').src = imgUrl;
+    document.getElementById('compare-vid').src = vidUrl;
+    document.getElementById('compare-dl-img').href = imgUrl;
+    document.getElementById('compare-dl-vid').href = vidUrl;
+    document.getElementById('compare-modal').style.display = 'flex';
+}
+
+function closeCompareModal(e) {
+    if (!e || e.target.id === 'media-compare-modal' || e.target.classList.contains('compare-close')) {
+        const vid = document.getElementById('compare-vid');
+        if (vid) vid.pause();
+        document.getElementById('compare-modal').style.display = 'none';
+    }
+}
+</script>
+
+</body>
+</html>

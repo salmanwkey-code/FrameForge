@@ -1,0 +1,91 @@
+<aside class="sidebar">
+    <div class="sidebar-logo-container">
+        <a href="{% url 'home' %}" style="text-decoration:none;display:flex;align-items:center;gap:10px;position:relative;">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg, #8B5CF6, #22D3EE);display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(139,92,246,0.5);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+            </div>
+            <span class="logo-text" style="font-size: 18px;">FrameForge</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{% url 'home' %}" class="sidebar-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            </span>
+            Dashboard
+            {% if request.resolver_match.url_name == 'home' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% url 'projects' %}" class="sidebar-item {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'create_project' or request.resolver_match.url_name == 'edit_project' %}active{% endif %}">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            </span>
+            Projects
+            {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'create_project' or request.resolver_match.url_name == 'edit_project' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% url 'visual_studio' %}" class="sidebar-item {% if request.resolver_match.url_name == 'visual_studio' or request.resolver_match.url_name == 'visual_studio_project' or request.resolver_match.url_name == 'animation_studio' %}active{% endif %}">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </span>
+            Images & Videos
+            {% if request.resolver_match.url_name == 'visual_studio' or request.resolver_match.url_name == 'visual_studio_project' or request.resolver_match.url_name == 'animation_studio' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% if selected_project %}{% url 'asset_library' selected_project.id %}{% elif project %}{% url 'asset_library' project.id %}{% else %}{% url 'projects' %}{% endif %}" class="sidebar-item {% if request.resolver_match.url_name == 'asset_library' %}active{% endif %}" id="nav-asset-library">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </span>
+            Asset Library
+            {% if request.resolver_match.url_name == 'asset_library' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% url 'exports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'exports' %}active{% endif %}">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            </span>
+            Exports
+            {% if request.resolver_match.url_name == 'exports' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% url 'profile' %}" class="sidebar-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <span class="sidebar-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            Profile
+            {% if request.resolver_match.url_name == 'profile' %}<span class="sidebar-item-dot"></span>{% endif %}
+        </a>
+        <a href="{% url 'logout' %}" class="sidebar-item sidebar-item-danger" style="margin-top: 10px;">
+            <span class="sidebar-item-icon" style="opacity:1;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            </span>
+            Logout
+        </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;"></div>
+            <div>
+                <div class="sidebar-footer-title">Platform Status</div>
+                <div class="sidebar-footer-desc">Systems Operational</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Bottom Nav for Mobile -->
+<nav class="bottom-nav">
+    <a href="{% url 'home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <span class="bottom-nav-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span>
+        <span class="bottom-nav-item-label">Home</span>
+    </a>
+    <a href="{% url 'projects' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'create_project' or request.resolver_match.url_name == 'edit_project' %}active{% endif %}">
+        <span class="bottom-nav-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
+        <span class="bottom-nav-item-label">Projects</span>
+    </a>
+    <a href="{% url 'exports' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'exports' %}active{% endif %}">
+        <span class="bottom-nav-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></span>
+        <span class="bottom-nav-item-label">Exports</span>
+    </a>
+    <a href="{% url 'profile' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <span class="bottom-nav-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="bottom-nav-item-label">Profile</span>
+    </a>
+</nav>

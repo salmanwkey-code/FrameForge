@@ -1,0 +1,838 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Render | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=10">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=10">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #8B5CF6;
+            --purple-glow: rgba(139, 92, 246, 0.35);
+            --cyan: #22D3EE;
+            --surface: rgba(18, 18, 26, 0.75);
+            --surface-hover: rgba(28, 28, 40, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(139, 92, 246, 0.4);
+            --text: #F3F4F6;
+            --muted: #9CA3AF;
+        }
+
+        /* ── Header Controls ── */
+        .iv-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .project-picker-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .project-select-field {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 240px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .project-select-field:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .iv-badge {
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: var(--purple);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .iv-steps {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .iv-step-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .iv-step-badge.active {
+            background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .iv-step-badge.inactive {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .iv-step-badge.inactive:hover {
+            color: var(--text);
+            border-color: var(--purple);
+        }
+
+        /* ── Glass Panel Cards ── */
+        .render-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1024px) {
+            .render-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        /* ── Metrics Cards ── */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Chapter Table ── */
+        .chapter-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .chapter-table th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--muted);
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chapter-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-dot.ready { background: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
+        .status-dot.warn { background: #FBBF24; box-shadow: 0 0 8px #FBBF24; }
+        .status-dot.err { background: #F87171; box-shadow: 0 0 8px #F87171; }
+
+        /* ── Action Section & Video Preview ── */
+        .action-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .render-btn {
+            background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 14px 36px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .render-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(139, 92, 246, 0.7);
+        }
+
+        .render-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── Progress Card ── */
+        .progress-box {
+            display: none;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 14px 0;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 15%;
+            background: linear-gradient(90deg, #8B5CF6, #22D3EE);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .stage-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+        }
+
+        .stage-item.current {
+            color: #22D3EE;
+            font-weight: 600;
+        }
+
+        .stage-item.done {
+            color: #4ADE80;
+        }
+
+        /* ── Video Player ── */
+        .video-player-wrap {
+            width: 100%;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .video-player-wrap video {
+            width: 100%;
+            display: block;
+            max-height: 480px;
+            object-fit: contain;
+        }
+
+        .player-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--purple);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* ── Toast ── */
+        .iv-toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .iv-toast {
+            background: rgba(18, 18, 26, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13px;
+            color: var(--text);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+            animation: toastIn 0.25s ease forwards;
+        }
+
+        .iv-toast.success { border-color: rgba(74, 222, 128, 0.4); }
+        .iv-toast.error { border-color: rgba(248, 113, 113, 0.4); }
+        .iv-toast.info { border-color: rgba(139, 92, 246, 0.4); }
+
+        @keyframes toastIn {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+<!-- Global Website Sidebar -->
+{% include 'sidebar.html' %}
+
+<div class="app-layout">
+    <main class="app-main">
+        <!-- Global Topbar -->
+        {% include 'topbar.html' with page_title="Final Video Render" show_new_project_btn=True %}
+
+        {% if selected_project %}
+
+        <!-- ═══ Header & Project Switcher ═══ -->
+        <div class="iv-header animate-in">
+            <div class="project-picker-wrap">
+                <div style="font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;">Project:</div>
+                <div class="custom-select-wrap" id="customProjectSelect">
+                    <div class="custom-select-trigger" onclick="toggleProjectSelect()">
+                        <span id="customSelectLabel">{% if selected_project.title %}{{ selected_project.title|truncatechars:45 }}{% elif selected_project.prompt %}{{ selected_project.prompt|truncatechars:45 }}{% else %}Project #{{ selected_project.id }}{% endif %}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                    <div class="custom-select-list" id="customSelectList">
+                        {% for p in projects %}
+                        <div class="custom-select-option {% if p.id == selected_project.id %}selected{% endif %}"
+                             onclick="switchProject('{{ p.id }}')">
+                            {% if p.title %}{{ p.title|truncatechars:45 }}{% elif p.prompt %}{{ p.prompt|truncatechars:45 }}{% else %}Project #{{ p.id }}{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <span class="iv-badge">
+                    <span>🎬</span> {{ chapters|length }} Chapter{{ chapters|length|pluralize }}
+                </span>
+                <span class="iv-badge" style="background: rgba(34, 211, 238, 0.1); border-color: rgba(34, 211, 238, 0.3); color: #22D3EE;">
+                    <span>📐</span> {{ visual_settings.aspect_ratio|default:"16:9" }} · {{ visual_settings.video_quality|default:"1080p" }}
+                </span>
+            </div>
+
+            <!-- Workflow Steps -->
+            <div class="iv-steps">
+                <a href="{% url 'visual_studio_project' selected_project.id %}" class="iv-step-badge inactive">
+                    <span>1</span> Images &amp; Videos
+                </a>
+                <span style="color: var(--muted); font-size: 12px;">→</span>
+                <span class="iv-step-badge active">
+                    <span>2</span> Final Render
+                </span>
+            </div>
+        </div>
+
+        <!-- ═══ Main Studio Grid ═══ -->
+        <div class="render-grid">
+            
+            <!-- Left Column: Chapter Status & Readiness Breakdown -->
+            <div class="glass-panel">
+                <div class="section-title">
+                    <span>📋</span> Timeline &amp; Chapter Assets
+                </div>
+                <p class="section-desc">Verify generated scenes and voiceovers prior to master video assembly.</p>
+
+                <!-- Metrics Overview -->
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ chapters|length }}</div>
+                        <div class="metric-label">Chapters</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ total_images_count }}/{{ total_scenes_count }}</div>
+                        <div class="metric-label">Scene Images</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ total_vo_count }}/{{ chapters|length }}</div>
+                        <div class="metric-label">Voiceovers</div>
+                    </div>
+                </div>
+
+                <!-- Breakdown Table -->
+                <div style="overflow-x: auto;">
+                    <table class="chapter-table">
+                        <thead>
+                            <tr>
+                                <th>Chapter</th>
+                                <th>Scenes</th>
+                                <th>Voiceover</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cs in chapter_stats %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #fff;">Ch. {{ cs.chapter.chapter_no }}</div>
+                                    <div style="font-size: 11px; color: var(--muted);">{{ cs.chapter.title|truncatechars:28 }}</div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 600;">{{ cs.image_count }}/{{ cs.scene_count }}</span>
+                                    {% if cs.image_count >= cs.scene_count and cs.scene_count > 0 %}
+                                    <span style="color: #4ADE80; font-size: 11px; margin-left: 4px;">✓</span>
+                                    {% else %}
+                                    <span style="color: #F87171; font-size: 11px; margin-left: 4px;">Incomplete</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if cs.has_vo %}
+                                    <span style="color: #4ADE80; font-weight: 500;">Synced ({{ cs.vo_duration }}s)</span>
+                                    {% else %}
+                                    <span style="color: var(--muted); font-size: 12px;">Default pacing (5s/scene)</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if cs.is_ready %}
+                                    <span class="status-dot ready"></span><span style="color: #4ADE80; font-size: 12px;">Ready</span>
+                                    {% else %}
+                                    <span class="status-dot warn"></span><span style="color: #FBBF24; font-size: 12px;">Missing Images</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">No chapters found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Column: Video Render Action / Result Player -->
+            <div class="glass-panel">
+                <div class="section-title">
+                    <span>🎬</span> Master Video Render
+                </div>
+                <p class="section-desc">Assembles scene images with documentary Ken Burns motion and syncs with voiceovers.</p>
+
+                <div id="render-action-panel" class="action-container" {% if video_url %}style="display: none;"{% endif %}>
+                    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.85;">✨</div>
+                    <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;">Ready to Produce Master Video</h3>
+                    <p style="font-size: 13px; color: var(--muted); max-width: 360px; margin: 0 auto 24px;">
+                        FFmpeg will apply cinematic camera dynamics to every scene and compile your high-definition MP4.
+                    </p>
+
+                    <button id="startRenderBtn" class="render-btn" onclick="triggerRender()" {% if final_video and final_video.status == 'assembling' %}disabled{% endif %}>
+                        <span>✨ Create Final Video</span>
+                    </button>
+
+                    <!-- Render Progress Box -->
+                    <div id="progressBox" class="progress-box" {% if final_video and final_video.status == 'assembling' %}style="display: block;"{% endif %}>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #22D3EE;">
+                            <span id="progressStepTitle">Rendering in progress...</span>
+                            <span id="progressPercent">40%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="progressBarFill" class="progress-bar-fill"></div>
+                        </div>
+                        <div class="stage-list">
+                            <div id="stage-1" class="stage-item done"><span>✓</span> 1. Loading scene assets &amp; visual settings</div>
+                            <div id="stage-2" class="stage-item current"><span>●</span> 2. Applying Ken Burns documentary motion</div>
+                            <div id="stage-3" class="stage-item"><span>○</span> 3. Concatenating chapter voiceovers</div>
+                            <div id="stage-4" class="stage-item"><span>○</span> 4. Finalizing master MP4 stream</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Completed Result Panel -->
+                <div id="video-result-panel" class="action-container" {% if not video_url %}style="display: none;"{% endif %}>
+                    <div class="video-player-wrap">
+                        <video id="finalVideoPlayer" controls playsinline preload="metadata">
+                            {% if video_url %}
+                            <source src="{{ video_url }}" type="video/mp4">
+                            {% endif %}
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+
+                    <div style="margin-bottom: 20px; text-align: center;">
+                        <span class="iv-badge" style="background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.3); color: #4ADE80; font-size: 13px;">
+                            <span>✓</span> Video Rendered Successfully
+                        </span>
+                    </div>
+
+                    <div class="player-actions">
+                        <a id="downloadBtn" href="{% if video_url %}{{ video_url }}{% else %}#{% endif %}" download class="btn-success">
+                            <span>⬇</span> Download MP4
+                        </a>
+                        <button class="btn-outline" onclick="reTriggerRender()">
+                            <span>↻</span> Regenerate Video
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        {% else %}
+        <!-- No Project Selected State -->
+        <div class="glass-panel" style="padding: 64px 24px; text-align: center; border-radius: 16px;">
+            <div style="font-size: 48px; opacity: 0.2; margin-bottom: 16px;">📁</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px;">No Project Selected</h3>
+            <p style="font-size: 13px; color: var(--muted); max-width: 420px; margin: 0 auto 20px;">Please create or select a project to proceed with final rendering.</p>
+            <a href="{% url 'projects' %}" class="btn btn-primary">Go to Projects</a>
+        </div>
+        {% endif %}
+
+    </main>
+</div>
+
+<!-- Toast Notifications Container -->
+<div id="toastContainer" class="iv-toast-container"></div>
+
+<script>
+    const projectId = {{ selected_project.id|default:0 }};
+    let isRendering = {% if final_video and final_video.status == 'assembling' %}true{% else %}false{% endif %};
+    let pollInterval = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `iv-toast ${type}`;
+        const icons = { success: '✓', error: '✕', info: '✦' };
+        toast.innerHTML = `<span>${icons[type] || '✦'}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(30px)';
+            toast.style.transition = 'all 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    function switchProject(pid) {
+        if (!pid) return;
+        window.location.href = `/visuals/${pid}/render/`;
+    }
+
+    function updateProgress(step, percent, title) {
+        const box = document.getElementById('progressBox');
+        if (box) box.style.display = 'block';
+        
+        const titleEl = document.getElementById('progressStepTitle');
+        const percentEl = document.getElementById('progressPercent');
+        const fillEl = document.getElementById('progressBarFill');
+
+        if (titleEl && title) titleEl.innerText = title;
+        if (percentEl) percentEl.innerText = `${percent}%`;
+        if (fillEl) fillEl.style.width = `${percent}%`;
+
+        for (let i = 1; i <= 4; i++) {
+            const item = document.getElementById(`stage-${i}`);
+            if (!item) continue;
+            if (i < step) {
+                item.className = 'stage-item done';
+                item.querySelector('span').innerText = '✓';
+            } else if (i === step) {
+                item.className = 'stage-item current';
+                item.querySelector('span').innerText = '●';
+            } else {
+                item.className = 'stage-item';
+                item.querySelector('span').innerText = '○';
+            }
+        }
+    }
+
+    async function triggerRender() {
+        if (!projectId) return;
+        const btn = document.getElementById('startRenderBtn');
+        btn.disabled = true;
+        isRendering = true;
+
+        updateProgress(1, 20, "Loading scene assets & timelines...");
+        showToast("Starting final video assembly pipeline...", "info");
+
+        // Dynamic progress stages simulation while backend renders
+        let stepProgress = 20;
+        const simInterval = setInterval(() => {
+            if (stepProgress < 85) {
+                stepProgress += 5;
+                let stepNum = 2;
+                let stepTitle = "Applying Ken Burns documentary motion...";
+                if (stepProgress > 65) {
+                    stepNum = 3;
+                    stepTitle = "Concatenating chapter voiceovers...";
+                }
+                updateProgress(stepNum, stepProgress, stepTitle);
+            }
+        }, 2000);
+
+        try {
+            const res = await fetch(`/api/render-final-video/${projectId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            clearInterval(simInterval);
+
+            const data = await res.json();
+            if (res.ok && data.success && data.video_url) {
+                updateProgress(4, 100, "Master video ready!");
+                showToast("Master video assembled successfully!", "success");
+                displayCompletedVideo(data.video_url);
+            } else if (res.status === 409) {
+                showToast("Render already in progress. Polling status...", "info");
+                startStatusPolling();
+            } else {
+                const errMsg = data.error || "Video render failed.";
+                showToast(errMsg, "error");
+                btn.disabled = false;
+                isRendering = false;
+                const box = document.getElementById('progressBox');
+                if (box) box.style.display = 'none';
+            }
+        } catch (err) {
+            clearInterval(simInterval);
+            console.error("Render trigger error:", err);
+            showToast("Network error while assembling video.", "error");
+            btn.disabled = false;
+            isRendering = false;
+        }
+    }
+
+    function displayCompletedVideo(url) {
+        isRendering = false;
+        if (pollInterval) clearInterval(pollInterval);
+
+        const actionPanel = document.getElementById('render-action-panel');
+        const resultPanel = document.getElementById('video-result-panel');
+        const player = document.getElementById('finalVideoPlayer');
+        const dlBtn = document.getElementById('downloadBtn');
+
+        if (actionPanel) actionPanel.style.display = 'none';
+        if (resultPanel) resultPanel.style.display = 'flex';
+
+        if (player) {
+            player.src = url;
+            player.load();
+        }
+        if (dlBtn) dlBtn.href = url;
+    }
+
+    function reTriggerRender() {
+        const actionPanel = document.getElementById('render-action-panel');
+        const resultPanel = document.getElementById('video-result-panel');
+        const btn = document.getElementById('startRenderBtn');
+
+        if (resultPanel) resultPanel.style.display = 'none';
+        if (actionPanel) actionPanel.style.display = 'flex';
+        if (btn) btn.disabled = false;
+
+        const box = document.getElementById('progressBox');
+        if (box) box.style.display = 'none';
+        triggerRender();
+    }
+
+    function startStatusPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/final-video-status/${projectId}/`);
+                const data = await res.json();
+                if (data.status === 'completed' && data.video_url) {
+                    clearInterval(pollInterval);
+                    displayCompletedVideo(data.video_url);
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    showToast(data.error || "Video render failed.", "error");
+                    const btn = document.getElementById('startRenderBtn');
+                    if (btn) btn.disabled = false;
+                    const box = document.getElementById('progressBox');
+                    if (box) box.style.display = 'none';
+                }
+            } catch (e) {
+                console.warn("Status polling error:", e);
+            }
+        }, 3000);
+    }
+
+    // Auto-poll if page loaded while assembling
+    if (isRendering) {
+        startStatusPolling();
+    }
+    function toggleProjectSelect() {
+        document.getElementById('customProjectSelect').classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('customProjectSelect');
+        if (wrap && !wrap.contains(e.target)) {
+            wrap.classList.remove('open');
+        }
+    });
+</script>
+
+</body>
+</html>

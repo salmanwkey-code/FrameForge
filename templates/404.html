@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+    <style>
+        body { min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; }
+        .err-wrap { position:relative; z-index:10; padding:40px 24px; max-width:480px; }
+        .err-code { font-family:'Plus Jakarta Sans',sans-serif; font-size:120px; font-weight:800; letter-spacing:-0.04em; line-height:1; background:linear-gradient(135deg,#A78BFA,#60A5FA,#22D3EE); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
+        .err-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:24px; font-weight:700; color:var(--text); margin-bottom:12px; }
+        .err-desc { color:var(--muted); font-size:15px; line-height:1.6; margin-bottom:32px; }
+    </style>
+</head>
+<body>
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+<div class="err-wrap animate-in">
+    <div class="err-code">404</div>
+    <div class="err-title">Page not found</div>
+    <div class="err-desc">The page you're looking for doesn't exist or has been moved. Let's get you back on track.</div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+        <a href="/" class="btn btn-primary btn-lg">← Back to Home</a>
+        <a href="/dashboard/" class="btn btn-ghost btn-lg">Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

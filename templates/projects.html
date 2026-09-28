@@ -1,0 +1,384 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | FrameForge</title>
+
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=9">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=9">
+    <style>
+        .projects-header-actions {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 24px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px 14px;
+            width: 300px;
+            max-width: 100%;
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            padding: 6px;
+            width: 100%;
+            font-size: 13px;
+            font-family: "Inter", sans-serif;
+        }
+
+        .search-icon {
+            color: var(--muted);
+            font-size: 14px;
+            margin-right: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.15));
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #C4B5FD;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .project-card {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeInUp 0.4s ease both;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2);
+        }
+
+        .project-card:nth-child(1) {
+            animation-delay: 100ms;
+        }
+
+        .project-card:nth-child(2) {
+            animation-delay: 200ms;
+        }
+
+        .project-card:nth-child(3) {
+            animation-delay: 300ms;
+        }
+
+        .project-card:nth-child(4) {
+            animation-delay: 400ms;
+        }
+
+        .project-card:nth-child(5) {
+            animation-delay: 500ms;
+        }
+
+        .project-card:nth-child(6) {
+            animation-delay: 600ms;
+        }
+
+        .project-card:nth-child(7) {
+            animation-delay: 700ms;
+        }
+
+        .project-card:nth-child(8) {
+            animation-delay: 800ms;
+        }
+
+        .project-card:nth-child(9) {
+            animation-delay: 900ms;
+        }
+
+        .pc-header-bg {
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, #8B5CF6, #3B82F6);
+        }
+
+        .project-card:nth-child(4n+1) .pc-header-bg {
+            background: linear-gradient(90deg, #8B5CF6, #3B82F6);
+        }
+
+        .project-card:nth-child(4n+2) .pc-header-bg {
+            background: linear-gradient(90deg, #3B82F6, #22D3EE);
+        }
+
+        .project-card:nth-child(4n+3) .pc-header-bg {
+            background: linear-gradient(90deg, #EC4899, #8B5CF6);
+        }
+
+        .project-card:nth-child(4n+4) .pc-header-bg {
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+        }
+
+        .pc-content {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .pc-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .pc-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .pc-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .pc-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin: 0 0 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .pc-meta {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .pc-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--faint);
+            font-weight: 500;
+        }
+
+        .pc-meta-icon {
+            display: flex;
+            align-items: center;
+            color: var(--muted);
+        }
+
+        .pc-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        .pc-actions form {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mesh-bg">
+        <div class="mesh-bg-blob-1"></div>
+        <div class="mesh-bg-blob-2"></div>
+        <div class="mesh-bg-blob-3"></div>
+        <div class="mesh-bg-grid"></div>
+    </div>
+
+    {% include 'sidebar.html' %}
+
+    <div class="app-layout">
+        <main class="app-main">
+
+            {% include 'topbar.html' with page_title="Projects" show_new_project_btn=True %}
+
+            <div class="projects-header-actions animate-in">
+                <div class="filter-tabs">
+                    <button class="filter-tab active">All Projects <span style="opacity:0.6;margin-left:4px;">{{
+                            projects.count }}</span></button>
+                    <button class="filter-tab">Recent</button>
+                    <button class="filter-tab">Archived</button>
+                </div>
+                <div class="search-bar">
+                    <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg></span>
+                    <input type="text" class="search-input" placeholder="Search projects...">
+                </div>
+            </div>
+
+            <div class="projects-grid">
+                {% for project in projects %}
+                <div class="glass-panel project-card">
+                    <div class="pc-header-bg"></div>
+                    <div class="pc-content">
+                        <div class="pc-top">
+                            <h3 class="pc-title">{% if project.title %}{{ project.title|truncatechars:50 }}{% else %}{{
+                                project.prompt|truncatechars:50 }}{% endif %}</h3>
+                            <div class="pc-status"><span class="status-dot done"
+                                    style="width:6px;height:6px;"></span>Active</div>
+                        </div>
+
+                        <p class="pc-desc">{{ project.prompt }}</p>
+
+                        <div class="pc-meta">
+                            <div class="pc-meta-item">
+                                <span class="pc-meta-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                                        <line x1="16" x2="16" y1="2" y2="6" />
+                                        <line x1="8" x2="8" y1="2" y2="6" />
+                                        <line x1="3" x2="21" y1="10" y2="10" />
+                                    </svg></span>
+                                {{ project.created_at|date:"M d, Y" }}
+                            </div>
+                            <div class="pc-meta-item">
+                                <span class="pc-meta-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <line x1="8" x2="21" y1="6" y2="6" />
+                                        <line x1="8" x2="21" y1="12" y2="12" />
+                                        <line x1="8" x2="21" y1="18" y2="18" />
+                                        <line x1="3" x2="3.01" y1="6" y2="6" />
+                                        <line x1="3" x2="3.01" y1="12" y2="12" />
+                                        <line x1="3" x2="3.01" y1="18" y2="18" />
+                                    </svg></span>
+                                {{ project.chapters.count|default:"0" }} chapters
+                            </div>
+                        </div>
+
+                        <div class="pc-actions">
+                            <a href="{% url 'edit_project' project.id %}" class="btn btn-secondary btn-sm"
+                                style="flex:1;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                                Edit Project
+                            </a>
+                            <form action="{% url 'delete_project' project.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-icon btn-sm"
+                                    style="color:var(--red);border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.1);"
+                                    title="Delete Project">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 6h18" />
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-projects animate-in">
+                    <div class="empty-icon"
+                        style="background:rgba(139,92,246,0.1);color:#C4B5FD;width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" />
+                            <path d="M3 9h18" />
+                            <path d="M9 21V9" />
+                        </svg>
+                    </div>
+                    <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;margin-bottom:8px;">No projects
+                        yet</h3>
+                    <p class="empty-text" style="color:var(--muted);font-size:14px;margin-bottom:24px;">Create your
+                        first YouTube automation project to get started.</p>
+                    <a href="{% url 'create_project' %}" class="btn btn-primary btn-lg">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                        </svg>
+                        New Project
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

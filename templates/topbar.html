@@ -1,0 +1,35 @@
+{% if page_title %}
+<div class="topbar">
+    <div>
+        <h1 class="topbar-title">{{ page_title }}</h1>
+        {% if page_subtitle %}
+        <p class="topbar-sub">{{ page_subtitle }}</p>
+        {% endif %}
+    </div>
+
+    <div class="topbar-actions">
+        <div class="user-profile-btn glass-panel">
+            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
+            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
+        </div>
+        
+        {% if show_new_project_btn %}
+        <a href="{% url 'create_project' %}" class="btn btn-primary">
+            + New Project
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="topbar" style="justify-content: flex-end; margin-bottom: 0; padding-bottom: 0;">
+    <div class="topbar-actions">
+        <div class="user-profile-btn glass-panel">
+            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
+            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
+        </div>
+        {% if show_new_project_btn %}
+        <a href="{% url 'create_project' %}" class="btn btn-primary">+ New Project</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

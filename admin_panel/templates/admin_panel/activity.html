@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity | FrameForge Admin</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+    <style>
+        body{display:flex;}
+        .admin-sidebar{width:220px;position:fixed;top:0;left:0;bottom:0;background:rgba(7,8,15,0.96);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;z-index:100;}
+        .admin-main{flex:1;margin-left:220px;padding:40px 48px;position:relative;z-index:10;min-width:0;}
+        .admin-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:var(--muted);font-size:13px;text-decoration:none;margin-bottom:4px;border:1px solid transparent;transition:all 0.2s;}
+        .admin-nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text);border-color:var(--border);}
+        .admin-nav-item.active{background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.12));border-color:rgba(139,92,246,0.3);color:#C4B5FD;font-weight:600;}
+        .activity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+        @media(max-width:1100px){.activity-grid{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body>
+<div class="mesh-bg"><div class="mesh-bg-blob-1"></div><div class="mesh-bg-blob-2"></div><div class="mesh-bg-grid"></div></div>
+<aside class="admin-sidebar">
+    <div style="padding:4px 10px 28px;"><div class="logo-text" style="font-size:16px;">FrameForge</div><div style="color:var(--faint);font-size:10px;margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Admin Panel</div></div>
+    <nav>
+        <a href="{% url 'admin_dashboard' %}" class="admin-nav-item">📊 Dashboard</a>
+        <a href="{% url 'admin_users' %}" class="admin-nav-item">👥 Users</a>
+        <a href="{% url 'admin_projects' %}" class="admin-nav-item">📁 Projects</a>
+        <a href="{% url 'admin_activity' %}" class="admin-nav-item active">⚡ Activity</a>
+        <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+        <a href="{% url 'home' %}" class="admin-nav-item">← App</a>
+        <a href="{% url 'logout' %}" class="admin-nav-item" style="color:var(--red);">⏻ Logout</a>
+    </nav>
+</aside>
+<main class="admin-main">
+    <div style="margin-bottom:32px;">
+        <h1 style="margin:0 0 4px;font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:var(--text);">Generation Activity</h1>
+        <p style="color:var(--muted);font-size:14px;">Recent AI generation events across all users</p>
+    </div>
+
+    <div class="activity-grid">
+        <!-- Images -->
+        <div class="glass-panel" style="padding:24px;">
+            <div class="section-header"><div class="section-title">🖼 Recent Images</div></div>
+            {% for img in recent_images %}
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:13px;font-weight:600;color:var(--text);">{{ img.chapter.project.title|truncatechars:30 }}</div>
+                <div style="font-size:11px;color:var(--muted);">Ch.{{ img.chapter.chapter_number }} · {{ img.created_at|date:"M d, H:i" }}</div>
+            </div>
+            {% empty %}<div class="empty-state" style="padding:24px 0;"><div class="empty-state-icon">🖼</div><div class="empty-state-desc">No images yet</div></div>{% endfor %}
+        </div>
+
+        <!-- Voiceovers -->
+        <div class="glass-panel" style="padding:24px;">
+            <div class="section-header"><div class="section-title">🎙 Recent Voiceovers</div></div>
+            {% for vo in recent_voiceovers %}
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:13px;font-weight:600;color:var(--text);">{{ vo.chapter.project.title|truncatechars:30 }}</div>
+                <div style="font-size:11px;color:var(--muted);">{{ vo.status }} · {{ vo.updated_at|date:"M d, H:i" }}</div>
+            </div>
+            {% empty %}<div class="empty-state" style="padding:24px 0;"><div class="empty-state-icon">🎙</div><div class="empty-state-desc">No voiceovers yet</div></div>{% endfor %}
+        </div>
+
+        <!-- Animations -->
+        <div class="glass-panel" style="padding:24px;">
+            <div class="section-header"><div class="section-title">🎬 Recent Animations</div></div>
+            {% for anim in recent_animations %}
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:13px;font-weight:600;color:var(--text);">{{ anim.chapter.project.title|truncatechars:30 }}</div>
+                <div style="font-size:11px;">
+                    {% if anim.status == 'generated' %}<span style="color:var(--green);">● Generated</span>{% elif anim.status == 'generating' %}<span style="color:var(--purple);">● Generating</span>{% else %}<span style="color:var(--amber);">● {{ anim.status }}</span>{% endif %}
+                    · {{ anim.updated_at|date:"M d, H:i" }}
+                </div>
+            </div>
+            {% empty %}<div class="empty-state" style="padding:24px 0;"><div class="empty-state-icon">🎬</div><div class="empty-state-desc">No animations yet</div></div>{% endfor %}
+        </div>
+    </div>
+</main>
+</body>
+</html>

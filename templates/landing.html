@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FrameForge — AI-Powered Video Asset Production</title>
+    <meta name="description" content="FrameForge turns your idea into a full video production package — AI scripts, voiceovers, conceptual images, and animated clips, ready to import into any video editor.">
+    <meta property="og:title" content="FrameForge — AI-Powered Video Asset Production">
+    <meta property="og:description" content="From idea to full production package in minutes. Scripts, voiceovers, images, animations — all AI-generated.">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=3">
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+<!-- NAV -->
+<nav class="landing-nav">
+    <div class="logo-text" style="font-size: 20px;">FrameForge</div>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <a href="{% url 'login' %}" class="btn btn-ghost" style="padding:9px 18px;">Login</a>
+        <a href="{% url 'signup' %}" class="btn btn-primary" style="padding:9px 18px;">Get Started →</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="landing-hero">
+    <div class="hero-text-col">
+        <div style="display:inline-flex; margin-bottom:20px;">
+            <span class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                AI Video Asset Production Platform
+            </span>
+        </div>
+
+        <h1 class="hero-title">
+            Turn Ideas Into<br>
+            <span class="grad-text">Professional</span><br>
+            Video Packages
+        </h1>
+
+        <p class="hero-desc">
+            One prompt. Full production kit. AI-generated scripts, multilingual voiceovers,
+            cinematic images, and Veo animations — packaged and ready for DaVinci, Premiere, or CapCut.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">Start for Free →</a>
+            <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">Sign In</a>
+        </div>
+
+        <div class="hero-social">
+            <div class="hero-avatars">
+                <div class="hero-avatar-circle" style="background:radial-gradient(circle at 35% 35%,#8B5CF6,#8B5CF688);"></div>
+                <div class="hero-avatar-circle" style="background:radial-gradient(circle at 35% 35%,#3B82F6,#3B82F688);"></div>
+                <div class="hero-avatar-circle" style="background:radial-gradient(circle at 35% 35%,#22D3EE,#22D3EE88);"></div>
+                <div class="hero-avatar-circle" style="background:radial-gradient(circle at 35% 35%,#A78BFA,#A78BFA88);"></div>
+            </div>
+            <span class="hero-social-text"><strong style="color:var(--text);">2,400+</strong> creators using FrameForge</span>
+        </div>
+    </div>
+
+    <div class="hero-visual-container">
+        <div class="hero-ring"><div class="hero-ring-dot"></div></div>
+        <div class="hero-sphere"><div class="hero-sphere-highlight"></div></div>
+
+        <div class="floating-card" style="left:calc(50% - 190px);top:calc(50% - 90px);border:1px solid rgba(139,92,246,0.25);box-shadow:0 0 20px rgba(139,92,246,0.12);animation-delay:0s;">
+            <div class="fc-label">Script Ready</div>
+            <div class="fc-val" style="color:#8B5CF6;">2m 14s</div>
+        </div>
+        <div class="floating-card" style="left:calc(50% + 140px);top:calc(50% - 100px);border:1px solid rgba(34,211,238,0.25);box-shadow:0 0 20px rgba(34,211,238,0.12);animation-delay:0.5s;">
+            <div class="fc-label">Voiceover</div>
+            <div class="fc-val" style="color:#22D3EE;">Generated ✓</div>
+        </div>
+        <div class="floating-card" style="left:calc(50% - 175px);top:calc(50% + 80px);border:1px solid rgba(59,130,246,0.25);box-shadow:0 0 20px rgba(59,130,246,0.12);animation-delay:1s;">
+            <div class="fc-label">Images</div>
+            <div class="fc-val" style="color:#3B82F6;">8 assets</div>
+        </div>
+        <div class="floating-card" style="left:calc(50% + 135px);top:calc(50% + 90px);border:1px solid rgba(167,139,250,0.25);box-shadow:0 0 20px rgba(167,139,250,0.12);animation-delay:1.5s;">
+            <div class="fc-label">Animations</div>
+            <div class="fc-val" style="color:#A78BFA;">6 clips</div>
+        </div>
+    </div>
+</section>
+
+<!-- PIPELINE STEPS -->
+<section style="position:relative;z-index:10;padding:80px 40px 40px;max-width:1100px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:48px;">
+        <div style="color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">The Workflow</div>
+        <h2 style="margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:var(--text);letter-spacing:-0.02em;">
+            Idea to Export in <span class="grad-text">6 steps</span>
+        </h2>
+    </div>
+    <div class="pipeline-grid">
+        {% for step in pipeline_steps %}
+        <div class="pipeline-step glass-panel">
+            <div class="pipeline-step-num">{{ forloop.counter }}</div>
+            <div class="pipeline-step-icon">{{ step.icon }}</div>
+            <div class="pipeline-step-name">{{ step.name }}</div>
+            <div class="pipeline-step-desc">{{ step.desc }}</div>
+        </div>
+        {% empty %}
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">1</div><div class="pipeline-step-icon">✦</div><div class="pipeline-step-name">Prompt</div><div class="pipeline-step-desc">Describe your video idea in plain language.</div></div>
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">2</div><div class="pipeline-step-icon">📝</div><div class="pipeline-step-name">Script</div><div class="pipeline-step-desc">AI generates chapter-by-chapter scripts instantly.</div></div>
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">3</div><div class="pipeline-step-icon">🎙</div><div class="pipeline-step-name">Voiceover</div><div class="pipeline-step-desc">40+ AI voices in 20+ languages. Studio quality.</div></div>
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">4</div><div class="pipeline-step-icon">🖼</div><div class="pipeline-step-name">Images</div><div class="pipeline-step-desc">Cinematic concept art auto-generated per chapter.</div></div>
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">5</div><div class="pipeline-step-icon">🎬</div><div class="pipeline-step-name">Animation</div><div class="pipeline-step-desc">Veo image-to-video brings your frames to life.</div></div>
+        <div class="pipeline-step glass-panel"><div class="pipeline-step-num">6</div><div class="pipeline-step-icon">📦</div><div class="pipeline-step-name">Export</div><div class="pipeline-step-desc">Download organized ZIP packs per chapter or project.</div></div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- FEATURES GRID -->
+<section class="features-section">
+    <div style="text-align:center;margin-bottom:40px;">
+        <div style="color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Everything you need</div>
+        <h2 style="margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:var(--text);letter-spacing:-0.02em;">
+            One platform, <span class="grad-text">full production</span>
+        </h2>
+    </div>
+
+    <div class="features-grid">
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.1));">✦</div>
+            <div class="feature-title">AI Scripts</div>
+            <div class="feature-desc">Full narrated scripts from a single prompt. Structured chapters, timestamps, and talking points — in seconds.</div>
+        </div>
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(34,211,238,0.15),rgba(59,130,246,0.08));">◎</div>
+            <div class="feature-title">Voiceovers</div>
+            <div class="feature-desc">Studio-quality AI voices across 40+ speakers in 20+ languages. Every chapter has its own audio file.</div>
+        </div>
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(139,92,246,0.1));">⬡</div>
+            <div class="feature-title">AI Images</div>
+            <div class="feature-desc">Chapter-matched cinematic concept art generated at 1080p or 4K, in any aspect ratio you need.</div>
+        </div>
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(34,211,238,0.1));">≋</div>
+            <div class="feature-title">Veo Animations</div>
+            <div class="feature-desc">Transform static images into dynamic video clips using Google Veo. Camera moves, motion controls, and more.</div>
+        </div>
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(74,222,128,0.15),rgba(34,211,238,0.08));">⊞</div>
+            <div class="feature-title">Asset Library</div>
+            <div class="feature-desc">Browse all generated images, voiceovers, and animations in one organized library. Preview and download instantly.</div>
+        </div>
+        <div class="glass-panel feature-card">
+            <div class="feature-icon-box" style="background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(248,113,113,0.08));">↓</div>
+            <div class="feature-title">Chapter Exports</div>
+            <div class="feature-desc">Structured ZIP packs per chapter — scripts, audio, images, and videos neatly organized for DaVinci or Premiere.</div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section style="position:relative;z-index:10;padding:80px 40px;text-align:center;">
+    <div class="glass-panel" style="max-width:600px;margin:0 auto;padding:56px 40px;box-shadow:0 40px 80px rgba(0,0,0,0.5),0 0 80px rgba(139,92,246,0.1);">
+        <div class="logo-text" style="font-size:18px;margin-bottom:16px;">FrameForge</div>
+        <h2 style="margin:0 0 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;font-weight:800;color:var(--text);letter-spacing:-0.02em;">
+            Ready to forge your next video?
+        </h2>
+        <p style="color:var(--muted);font-size:15px;margin:0 0 32px;line-height:1.6;">
+            Create your first project free. No credit card required.
+        </p>
+        <a href="{% url 'signup' %}" class="btn btn-primary btn-lg" style="padding:14px 40px;font-size:16px;">
+            Get Started Free →
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="position:relative;z-index:10;padding:24px 40px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;">
+    <div class="logo-text" style="font-size:15px;">FrameForge</div>
+    <div style="color:var(--faint);font-size:12px;">AI-powered video asset production.</div>
+    <div style="display:flex;gap:16px;">
+        <a href="/robots.txt" style="color:var(--faint);font-size:12px;">robots.txt</a>
+        <a href="/sitemap.xml" style="color:var(--faint);font-size:12px;">sitemap</a>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+
+*.sqlite3
+
+media/
+staticfiles/
+
+yts_env/
+venv/
+env/
+
+.vscode/
+.idea/
+
+*.log
+
+.DS_Store
+Thumbs.db
+
+# Development/test files
+scratch.py
+update_views.py
+find_keys.py
+test_delete.py
+test_fast_output.mp4
+test_gemini.py
+test_gen.py
+test_poll.py
+
+# Unrelated project
+Tarot reading app/
+
+sample_data/

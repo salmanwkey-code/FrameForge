@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads & Exports | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+{% include 'sidebar.html' %}
+
+<div class="app-layout">
+<main class="app-main">
+
+    {% include 'topbar.html' with page_title="Downloads & Exports" %}
+
+    <!-- Page intro -->
+    <div style="margin-bottom: 28px;">
+        <h1 style="font-size:22px;font-weight:800;color:#fff;margin:0 0 6px 0;">Asset Downloads</h1>
+        <p style="font-size:14px;color:var(--muted);margin:0;">Download your complete production asset packages — ready to import into DaVinci Resolve, Premiere Pro, CapCut, or any editing software.</p>
+    </div>
+
+    <!-- Project asset packages -->
+    {% if project_summaries %}
+    <div style="display:flex;flex-direction:column;gap:14px;">
+        {% for ps in project_summaries %}
+        <div class="glass-panel" style="padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ps.project.title }}</div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <span style="font-size:12px;color:var(--muted);">📁 {{ ps.chapter_count }} chapter{{ ps.chapter_count|pluralize }}</span>
+                    <span style="font-size:12px;color:#22D3EE;">🖼 {{ ps.total_images }} image{{ ps.total_images|pluralize }}</span>
+                    <span style="font-size:12px;color:#10B981;">🎙 {{ ps.total_voiceovers }} voiceover{{ ps.total_voiceovers|pluralize }}</span>
+                    {% if ps.total_videos > 0 %}<span style="font-size:12px;color:#A78BFA;">🎬 {{ ps.total_videos }} video{{ ps.total_videos|pluralize }}</span>{% endif %}
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+                <a href="{% url 'asset_library' ps.project.id %}" class="btn btn-ghost btn-sm" style="text-decoration:none;white-space:nowrap;">📦 Asset Library</a>
+                <a href="{% url 'api_download_project_package' ps.project.id %}" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download Full ZIP
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="glass-panel" style="padding:60px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;opacity:0.2;">📦</div>
+        <h3 style="font-size:18px;font-weight:700;color:#f1f5f9;margin:0 0 8px 0;">No projects yet</h3>
+        <p style="color:var(--muted);font-size:14px;margin:0 0 20px 0;">Create a project and generate your assets to download them here.</p>
+        <a href="{% url 'create_project' %}" class="btn btn-primary" style="text-decoration:none;">+ New Project</a>
+    </div>
+    {% endif %}
+
+    <!-- Info banner -->
+    <div style="margin-top:32px;padding:20px 24px;background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.12);border-radius:14px;display:flex;align-items:center;gap:16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        <div>
+            <div style="font-size:13px;font-weight:700;color:#22D3EE;margin-bottom:4px;">What's in each ZIP package?</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;">Each chapter is organized into its own folder containing: <strong style="color:#cbd5e1;">script.txt</strong> (narration script), <strong style="color:#cbd5e1;">voiceover.mp3</strong> (AI-generated audio), <strong style="color:#cbd5e1;">images/</strong> (generated scene artwork), and <strong style="color:#cbd5e1;">videos/</strong> (AI-animated MP4 clips). Full project ZIPs include all chapters.</div>
+        </div>
+    </div>
+
+</main>
+</div>
+
+</body>
+</html>

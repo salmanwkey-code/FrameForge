@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=4">
+    <style>
+        /* Profile-specific styles */
+        .profile-hero {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 32px 24px 28px;
+            overflow: hidden;
+        }
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(34,211,238,0.06) 100%);
+            pointer-events: none;
+        }
+        .profile-avatar-ring {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            margin-bottom: 16px;
+        }
+        .profile-avatar-ring::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B5CF6, #22D3EE, #8B5CF6);
+            animation: spin-slow 4s linear infinite;
+            z-index: 0;
+        }
+        .profile-avatar-inner {
+            position: relative;
+            z-index: 1;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #A78BFA, #22D3EE);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 800;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            border: 3px solid var(--bg);
+            box-shadow: 0 0 32px rgba(139,92,246,0.5);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .profile-avatar-inner:hover {
+            transform: scale(1.05);
+        }
+        .profile-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-edit-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+            border: 2px solid var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            z-index: 2;
+            cursor: pointer;
+        }
+        .profile-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0 0 4px;
+        }
+        .profile-email {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 20px;
+        }
+        .profile-stats {
+            display: flex;
+            gap: 0;
+            width: 100%;
+            border-top: 1px solid var(--border);
+            padding-top: 18px;
+        }
+        .profile-stat {
+            flex: 1;
+            text-align: center;
+            padding: 0 8px;
+            border-right: 1px solid var(--border);
+        }
+        .profile-stat:last-child {
+            border-right: none;
+        }
+        .profile-stat-val {
+            font-size: 22px;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .profile-stat-label {
+            font-size: 10px;
+            color: var(--faint);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        @keyframes spin-slow {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+{% include 'sidebar.html' %}
+
+<div class="app-layout">
+<main class="app-main">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+        <div>
+            <h1 style="margin: 0 0 4px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.02em;">My Profile</h1>
+            <p style="margin: 0; color: var(--muted); font-size: 14px;">Manage your account settings and preferences</p>
+        </div>
+        <div class="user-profile-btn glass-panel">
+            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
+            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 960px; margin: 0 auto;">
+        
+        <!-- Avatar Card -->
+        <div class="glass-panel profile-hero">
+            <input type="file" id="profile-upload" name="profile_picture" style="display: none;" onchange="previewImage(this)">
+            
+            <div class="profile-avatar-ring" onclick="document.getElementById('profile-upload').click()">
+                <div class="profile-avatar-inner" id="avatarEl">
+                    {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="Avatar">
+                    {% else %}
+                    {{ request.user.username|first|upper|default:"U" }}
+                    {% endif %}
+                </div>
+                <div class="profile-edit-badge">✎</div>
+            </div>
+
+            <p class="profile-name">{{ profile.display_name|default:request.user.username }}</p>
+            <p class="profile-email">{{ profile.email|default:"No email set" }}</p>
+
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="profile-stat-val" style="background-image: linear-gradient(135deg, #A78BFA, #8B5CF6);">{{ request.user.project_set.count|default:"0" }}</div>
+                    <div class="profile-stat-label">Projects</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-val" style="background-image: linear-gradient(135deg, #60A5FA, #3B82F6);">84</div>
+                    <div class="profile-stat-label">Chapters</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-val" style="background-image: linear-gradient(135deg, #22D3EE, #06B6D4);">0</div>
+                    <div class="profile-stat-label">Exports</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <form method="POST" enctype="multipart/form-data" class="glass-panel" style="padding: 32px;">
+            {% csrf_token %}
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.12)); border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">⚙</div>
+                <div>
+                    <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 700; color: var(--text);">Account Details</div>
+                    <div style="font-size: 12px; color: var(--muted);">Update your personal information</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+                <div class="field-group">
+                    <label class="field-label">Full Name</label>
+                    <input type="text" name="full_name" value="{{ profile.full_name }}" class="field-input" placeholder="Your full name">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Display Name</label>
+                    <input type="text" name="display_name" value="{{ profile.display_name }}" class="field-input" placeholder="Username to display">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+                <div class="field-group">
+                    <label class="field-label">Email</label>
+                    <input type="email" name="email" value="{{ profile.email }}" class="field-input" placeholder="you@example.com">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Phone Number</label>
+                    <input type="text" name="phone_number" value="{{ profile.phone_number }}" class="field-input" placeholder="+1 234 567 890">
+                </div>
+            </div>
+            <div class="field-group" style="margin-bottom: 28px;">
+                <label class="field-label">Bio</label>
+                <textarea name="bio" rows="4" class="field-textarea" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; padding-top: 4px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
+                    ✓ Save Changes
+                </button>
+                <span style="font-size: 12px; color: var(--faint);">Changes are saved immediately</span>
+            </div>
+        </form>
+
+    </div>
+
+</main>
+</div><!-- end app-layout -->
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var el = document.getElementById('avatarEl');
+            el.innerHTML = '<img src="' + e.target.result + '" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
+</body>
+</html>

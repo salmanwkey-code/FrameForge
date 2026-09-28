@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | FrameForge</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+    <style>
+        body { display:flex; }
+        .admin-sidebar { width:220px; position:fixed; top:0; left:0; bottom:0; background:rgba(7,8,15,0.96); backdrop-filter:blur(20px); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px 14px; z-index:100; }
+        .admin-main { flex:1; margin-left:220px; padding:40px 48px; position:relative; z-index:10; min-width:0; }
+        .admin-nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; color:var(--muted); font-size:13px; font-weight:400; cursor:pointer; text-decoration:none; margin-bottom:4px; border:1px solid transparent; transition:all 0.2s; }
+        .admin-nav-item:hover { background:rgba(255,255,255,0.04); color:var(--text); border-color:var(--border); }
+        .admin-nav-item.active { background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.12)); border-color:rgba(139,92,246,0.3); color:#C4B5FD; font-weight:600; }
+        .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:36px; }
+        .admin-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:24px; }
+        .metric-val { font-family:'Plus Jakarta Sans',sans-serif; font-size:36px; font-weight:800; color:var(--text); }
+        .metric-label { color:var(--muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-top:4px; }
+        .health-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+        .health-row:last-child { border-bottom:none; }
+        .health-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .health-dot.ok { background:#4ade80; box-shadow:0 0 6px rgba(74,222,128,0.7); }
+        .health-dot.warn { background:#fbbf24; box-shadow:0 0 6px rgba(251,191,36,0.7); }
+        .health-dot.err { background:#f87171; box-shadow:0 0 6px rgba(248,113,113,0.7); }
+        .dashboard-grid { display:grid; grid-template-columns:3fr 1fr; gap:24px; }
+        @media(max-width:1100px){ .stats-row{grid-template-columns:repeat(2,1fr);} .dashboard-grid{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+<!-- Admin Sidebar -->
+<aside class="admin-sidebar">
+    <div style="padding:4px 10px 28px;">
+        <div class="logo-text" style="font-size:16px;">FrameForge</div>
+        <div style="color:var(--faint);font-size:10px;margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Admin Panel</div>
+    </div>
+    <nav>
+        <a href="{% url 'admin_dashboard' %}" class="admin-nav-item active">📊 Dashboard</a>
+        <a href="{% url 'admin_users' %}" class="admin-nav-item">👥 Users</a>
+        <a href="{% url 'admin_projects' %}" class="admin-nav-item">📁 Projects</a>
+        <a href="{% url 'admin_activity' %}" class="admin-nav-item">⚡ Activity</a>
+        <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+        <a href="{% url 'home' %}" class="admin-nav-item">← App</a>
+        <a href="{% url 'logout' %}" class="admin-nav-item" style="color:var(--red);">⏻ Logout</a>
+    </nav>
+</aside>
+
+<main class="admin-main">
+    <div style="margin-bottom:32px;">
+        <h1 style="margin:0 0 4px;font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:var(--text);">Dashboard</h1>
+        <p style="color:var(--muted);font-size:14px;">FrameForge system overview and live metrics</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="admin-card" style="border-color:rgba(139,92,246,0.25);">
+            <div class="metric-val" style="background:linear-gradient(135deg,#fff,#C4B5FD);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">{{ total_users }}</div>
+            <div class="metric-label">Total Users</div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted);">{{ active_users }} active</div>
+        </div>
+        <div class="admin-card" style="border-color:rgba(59,130,246,0.25);">
+            <div class="metric-val" style="background:linear-gradient(135deg,#fff,#93C5FD);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">{{ total_projects }}</div>
+            <div class="metric-label">Projects</div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted);">{{ total_chapters }} chapters</div>
+        </div>
+        <div class="admin-card" style="border-color:rgba(34,211,238,0.25);">
+            <div class="metric-val" style="background:linear-gradient(135deg,#fff,#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">{{ total_images }}</div>
+            <div class="metric-label">Images Generated</div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted);">{{ total_voiceovers }} voiceovers</div>
+        </div>
+        <div class="admin-card" style="border-color:rgba(74,222,128,0.25);">
+            <div class="metric-val" style="background:linear-gradient(135deg,#fff,#6EE7B7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">{{ total_animations }}</div>
+            <div class="metric-label">Animations Done</div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted);">Veo generated clips</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Recent Projects -->
+        <div class="admin-card">
+            <div class="section-header">
+                <div class="section-title">Recent Projects</div>
+                <a href="{% url 'admin_projects' %}" class="btn btn-ghost btn-sm">View all</a>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Owner</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for project in recent_projects %}
+                <tr>
+                    <td>
+                        <div style="font-weight:600;color:var(--text);">{{ project.title|truncatechars:40 }}</div>
+                        <div style="font-size:11px;color:var(--faint);">{{ project.prompt|truncatechars:50 }}</div>
+                    </td>
+                    <td><span class="badge badge-muted">{{ project.user.username }}</span></td>
+                    <td style="color:var(--muted);font-size:12px;">{{ project.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" style="text-align:center;color:var(--faint);padding:24px;">No projects yet</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- System Health -->
+        <div class="admin-card">
+            <div class="section-title" style="margin-bottom:18px;">System Health</div>
+            <div class="health-row">
+                <div class="health-dot ok"></div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">Database</div>
+                    <div style="font-size:11px;color:var(--muted);">{{ system_health.database }}</div>
+                </div>
+            </div>
+            <div class="health-row">
+                <div class="health-dot {% if system_health.ai_key_configured %}ok{% else %}err{% endif %}"></div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">Google AI Key</div>
+                    <div style="font-size:11px;color:var(--muted);">{% if system_health.ai_key_configured %}Configured ✓{% else %}Not set — add to .env{% endif %}</div>
+                </div>
+            </div>
+            <div class="health-row">
+                <div class="health-dot ok"></div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">Django</div>
+                    <div style="font-size:11px;color:var(--muted);">v{{ system_health.django_version }}</div>
+                </div>
+            </div>
+            <div class="health-row">
+                <div class="health-dot ok"></div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">Python</div>
+                    <div style="font-size:11px;color:var(--muted);">v{{ system_health.python_version }}</div>
+                </div>
+            </div>
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                <div style="font-size:11px;color:var(--faint);margin-bottom:4px;">Media Root</div>
+                <div style="font-size:11px;color:var(--muted);word-break:break-all;">{{ system_health.media_root }}</div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

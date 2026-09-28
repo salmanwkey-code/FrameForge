@@ -1,0 +1,203 @@
+/* ─── Dashboard Stats ────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 36px;
+}
+.stat-card {
+  padding: 20px;
+  flex: 1;
+  min-width: 0;
+  transition: all 0.25s;
+  cursor: default;
+}
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.stat-card-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.stat-card-value {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  line-height: 1;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Stat Card Colors */
+.stat-purple:hover {
+  border-color: rgba(139,92,246,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 24px rgba(139,92,246,0.12);
+}
+.stat-purple .stat-card-icon {
+  background: rgba(139,92,246,0.12);
+  border: 1px solid rgba(139,92,246,0.2);
+  color: rgb(139,92,246);
+}
+.stat-purple .stat-card-value { background-image: linear-gradient(135deg, rgb(139,92,246), rgba(139,92,246,0.6)); }
+
+.stat-blue:hover {
+  border-color: rgba(59,130,246,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 24px rgba(59,130,246,0.12);
+}
+.stat-blue .stat-card-icon {
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.2);
+  color: rgb(59,130,246);
+}
+.stat-blue .stat-card-value { background-image: linear-gradient(135deg, rgb(59,130,246), rgba(59,130,246,0.6)); }
+
+.stat-cyan:hover {
+  border-color: rgba(34,211,238,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 24px rgba(34,211,238,0.12);
+}
+.stat-cyan .stat-card-icon {
+  background: rgba(34,211,238,0.12);
+  border: 1px solid rgba(34,211,238,0.2);
+  color: rgb(34,211,238);
+}
+.stat-cyan .stat-card-value { background-image: linear-gradient(135deg, rgb(34,211,238), rgba(34,211,238,0.6)); }
+
+.stat-violet:hover {
+  border-color: rgba(167,139,250,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 24px rgba(167,139,250,0.12);
+}
+.stat-violet .stat-card-icon {
+  background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.2);
+  color: rgb(167,139,250);
+}
+.stat-violet .stat-card-value { background-image: linear-gradient(135deg, rgb(167,139,250), rgba(167,139,250,0.6)); }
+
+/* ─── Projects Grid ──────────────────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.section-header h2 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.project-card {
+  padding: 20px;
+  transition: all 0.25s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+.project-card:hover {
+  border-color: rgba(139,92,246,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.4), 0 0 24px rgba(139,92,246,0.1);
+}
+.project-card-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: all 0.3s;
+}
+.project-card:hover .project-card-highlight {
+  background: linear-gradient(90deg, rgb(139,92,246), transparent);
+}
+.project-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.project-card-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  line-height: 1.35;
+}
+.project-card-status {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(139,92,246,0.12);
+  color: rgb(139,92,246);
+  border: 1px solid rgba(139,92,246,0.25);
+}
+.project-card-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.project-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.project-card-meta-item {
+  font-size: 11px;
+  color: var(--faint);
+}
+.empty-projects {
+  text-align: center;
+  padding: 60px 0;
+  grid-column: 1 / -1;
+}
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 14px;
+  opacity: 0.15;
+}
+.empty-text {
+  color: var(--muted);
+  margin: 0 0 18px 0;
+}
+
+@media(max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .section-header h2 { font-size: 18px; }
+  .projects-grid { grid-template-columns: 1fr; }
+}

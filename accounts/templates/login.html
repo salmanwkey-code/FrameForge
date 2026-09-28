@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FrameForge</title>
+    <meta name="description" content="Sign in to your FrameForge account and continue creating AI-powered video assets.">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=3">
+    <style>
+        body { min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; }
+        .auth-wrap { position:relative; z-index:10; width:100%; max-width:440px; padding:24px; }
+        .auth-logo { text-align:center; margin-bottom:28px; }
+        .auth-card { padding:40px 36px; box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 40px rgba(139,92,246,0.08); }
+        .auth-heading { margin:0 0 6px; font-family:'Plus Jakarta Sans',sans-serif; font-size:24px; font-weight:800; color:var(--text); }
+        .auth-sub { margin:0 0 24px; color:var(--muted); font-size:13px; }
+        .pw-wrap { position:relative; }
+        .pw-wrap .field-input { padding-right:42px; }
+        .pw-eye { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; display:flex; align-items:center; transition:color 0.15s; }
+        .pw-eye:hover { color:var(--text); }
+        .auth-alert { padding:12px 16px; border-radius:12px; margin-bottom:20px; font-size:14px; }
+        .auth-alert-error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#FCA5A5; }
+        .auth-alert-success { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:#4ade80; }
+        .auth-footer-link { margin:18px 0 0; text-align:center; color:var(--muted); font-size:13px; }
+        .auth-back { text-align:center; margin-top:14px; }
+        .auth-back a { color:var(--faint); font-size:12px; }
+        .auth-back a:hover { color:var(--muted); }
+        .btn-submitting .spinner { display:inline-block !important; }
+        .btn-submitting span.btn-label { display:none; }
+    </style>
+</head>
+<body>
+
+<div class="mesh-bg">
+    <div class="mesh-bg-blob-1"></div>
+    <div class="mesh-bg-blob-2"></div>
+    <div class="mesh-bg-blob-3"></div>
+    <div class="mesh-bg-grid"></div>
+</div>
+
+<div class="auth-wrap animate-in">
+    <div class="auth-logo">
+        <a href="{% url 'landing' %}"><span class="logo-text" style="font-size:24px;">FrameForge</span></a>
+    </div>
+
+    <div class="glass-panel auth-card">
+        <h1 class="auth-heading">Welcome back</h1>
+        <p class="auth-sub">Sign in to continue to FrameForge</p>
+
+        {% if error %}
+        <div class="auth-alert auth-alert-error">{{ error }}</div>
+        {% endif %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="auth-alert auth-alert-success">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form id="loginForm" method="POST" style="display:flex; flex-direction:column; gap:14px;">
+            {% csrf_token %}
+            <div class="field-group">
+                <label class="field-label" for="id_username">Username</label>
+                <input id="id_username" type="text" name="username" placeholder="Enter your username"
+                       class="field-input" autocomplete="username" required autofocus>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="id_password">Password</label>
+                <div class="pw-wrap">
+                    <input id="id_password" type="password" name="password" placeholder="••••••••"
+                           class="field-input" autocomplete="current-password" required>
+                    <button type="button" class="pw-eye" onclick="togglePw('id_password', this)" aria-label="Toggle password visibility">
+                        <svg id="eye-login" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top:8px;">
+                <button id="submitBtn" type="submit" class="btn btn-primary btn-lg btn-full">
+                    <span class="spinner" style="display:none;"></span>
+                    <span class="btn-label">Sign In →</span>
+                </button>
+            </div>
+        </form>
+
+        <p class="auth-footer-link">
+            Don't have an account?
+            <a href="{% url 'signup' %}" style="color:#C4B5FD;font-weight:600;">Sign Up</a>
+        </p>
+    </div>
+
+    <div class="auth-back"><a href="{% url 'landing' %}">← Back to home</a></div>
+</div>
+
+<script>
+function togglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.querySelector('svg').style.opacity = isText ? '1' : '0.5';
+}
+document.getElementById('loginForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.querySelector('.spinner').style.display = 'inline-block';
+    btn.querySelector('.btn-label').textContent = 'Signing in…';
+});
+</script>
+</body>
+</html>
