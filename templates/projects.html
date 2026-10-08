@@ -267,10 +267,15 @@
 
             <div class="projects-header-actions animate-in">
                 <div class="filter-tabs">
-                    <button class="filter-tab active">All Projects <span style="opacity:0.6;margin-left:4px;">{{
-                            projects.count }}</span></button>
-                    <button class="filter-tab">Recent</button>
-                    <button class="filter-tab">Archived</button>
+                    <button class="filter-tab active" data-filter="all">
+                        All Projects <span id="tab-count-all" style="opacity:0.6;margin-left:4px;">{{ total_count }}</span>
+                    </button>
+                    <button class="filter-tab" data-filter="recent">
+                        Recent <span id="tab-count-recent" style="opacity:0.6;margin-left:4px;">{{ recent_count }}</span>
+                    </button>
+                    <button class="filter-tab" data-filter="archived">
+                        Archived <span id="tab-count-archived" style="opacity:0.6;margin-left:4px;">{{ archived_count }}</span>
+                    </button>
                 </div>
                 <div class="search-bar">
                     <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -278,20 +283,29 @@
                             <circle cx="11" cy="11" r="8" />
                             <path d="m21 21-4.3-4.3" />
                         </svg></span>
-                    <input type="text" class="search-input" placeholder="Search projects...">
+                    <input type="text" class="search-input" id="search-input" placeholder="Search projects...">
                 </div>
             </div>
 
-            <div class="projects-grid">
+            <div class="projects-grid" id="projects-grid">
                 {% for project in projects %}
-                <div class="glass-panel project-card">
+                <div class="glass-panel project-card"
+                    data-title="{% if project.title %}{{ project.title|lower }}{% else %}{{ project.prompt|lower }}{% endif %}"
+                    data-prompt="{{ project.prompt|lower }}"
+                    data-status="{{ project.status }}"
+                    data-created="{{ project.created_at|date:'Y-m-d' }}">
                     <div class="pc-header-bg"></div>
                     <div class="pc-content">
                         <div class="pc-top">
                             <h3 class="pc-title">{% if project.title %}{{ project.title|truncatechars:50 }}{% else %}{{
                                 project.prompt|truncatechars:50 }}{% endif %}</h3>
-                            <div class="pc-status"><span class="status-dot done"
-                                    style="width:6px;height:6px;"></span>Active</div>
+                            <div class="pc-status">
+                                {% if project.status == 'archived' %}
+                                <span class="status-dot" style="width:6px;height:6px;background:var(--muted);"></span>Archived
+                                {% else %}
+                                <span class="status-dot done" style="width:6px;height:6px;"></span>Active
+                                {% endif %}
+                            </div>
                         </div>
 
                         <p class="pc-desc">{{ project.prompt }}</p>
@@ -376,9 +390,72 @@
                 {% endfor %}
             </div>
 
+            <div id="no-search-results" style="display:none;text-align:center;padding:48px 16px;">
+                <p style="color:var(--muted);font-size:15px;">No projects match your current search or filter.</p>
+            </div>
+
         </main>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.filter-tab');
+            const searchInput = document.getElementById('search-input');
+            const cards = document.querySelectorAll('.project-card');
+            const noResults = document.getElementById('no-search-results');
+            const thirtyDaysAgoIso = "{{ thirty_days_ago_iso|default:'' }}";
+
+            let currentFilter = 'all';
+
+            function filterProjects() {
+                const query = (searchInput.value || '').trim().toLowerCase();
+                let visibleCount = 0;
+
+                cards.forEach(card => {
+                    const title = card.getAttribute('data-title') || '';
+                    const prompt = card.getAttribute('data-prompt') || '';
+                    const status = card.getAttribute('data-status') || '';
+                    const created = card.getAttribute('data-created') || '';
+
+                    let matchesFilter = true;
+                    if (currentFilter === 'recent') {
+                        matchesFilter = (created >= thirtyDaysAgoIso);
+                    } else if (currentFilter === 'archived') {
+                        matchesFilter = (status === 'archived');
+                    }
+
+                    let matchesSearch = true;
+                    if (query) {
+                        matchesSearch = title.includes(query) || prompt.includes(query);
+                    }
+
+                    if (matchesFilter && matchesSearch) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                if (noResults) {
+                    noResults.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+                }
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-filter') || 'all';
+                    filterProjects();
+                });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterProjects);
+            }
+        });
+    </script>
 </body>
 
 </html>

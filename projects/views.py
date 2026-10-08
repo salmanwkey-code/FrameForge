@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
+from django.db.models import Q
 
 from .models import (
     Project, Chapter, ChapterScript, Voiceover, GeneratedImage, AnimatedVideo, ImagePrompt, VideoPrompt, ProjectVisualSettings
@@ -85,13 +86,29 @@ def dashboard(request):
 
 @login_required
 def projects(request):
-    """List all projects owned by current user."""
+    """List all projects owned by current user with counts and recency data."""
+    from django.utils import timezone
+    import datetime
+
     projects_qs = (
         Project.objects
         .filter(user=request.user)
         .order_by("-created_at")
     )
-    return render(request, "projects.html", {"projects": projects_qs})
+    
+    total_count = projects_qs.count()
+    recent_cutoff = timezone.now() - datetime.timedelta(days=60)
+    recent_count = projects_qs.filter(Q(created_at__gte=recent_cutoff) | Q(updated_at__gte=recent_cutoff)).count()
+    archived_count = projects_qs.filter(status='archived').count()
+
+    context = {
+        "projects": projects_qs,
+        "total_count": total_count,
+        "recent_count": recent_count,
+        "archived_count": archived_count,
+        "thirty_days_ago_iso": recent_cutoff.strftime("%Y-%m-%d"),
+    }
+    return render(request, "projects.html", context)
 
 
 @login_required
