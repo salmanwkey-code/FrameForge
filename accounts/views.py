@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -96,23 +97,60 @@ def signup_page(request):
 
 @login_required
 def profile(request):
-
-    profile_obj, created = Profile.objects.get_or_create(
+    profile_obj, _ = Profile.objects.get_or_create(
         user=request.user
     )
 
     if request.method == "POST":
+        profile_obj.full_name = request.POST.get("full_name", "").strip()
+        profile_obj.display_name = request.POST.get("display_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        profile_obj.phone_number = request.POST.get("phone_number", "").strip()
+        profile_obj.bio = request.POST.get("bio", "").strip()
 
-        profile_obj.full_name = request.POST.get("full_name")
-        profile_obj.email = request.POST.get("email")
-        profile_obj.phone_number = request.POST.get("phone_number")
-        profile_obj.bio = request.POST.get("bio")
-        profile_obj.display_name = request.POST.get("display_name")
+        if email:
+            profile_obj.email = email
+            if request.user.email != email:
+                request.user.email = email
+                request.user.save(update_fields=["email"])
 
-        if request.FILES.get("profile_picture"):
-            profile_obj.profile_picture = request.FILES["profile_picture"]
+        uploaded_file = request.FILES.get("profile_picture")
+        if uploaded_file:
+            MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
+            ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+            ext = os.path.splitext(uploaded_file.name)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                messages.error(request, "Invalid image format. Allowed formats: JPG, PNG, WEBP, GIF.")
+                return redirect("profile")
+
+            if uploaded_file.size > MAX_UPLOAD_SIZE:
+                messages.error(request, "Image file too large. Maximum size is 5MB.")
+                return redirect("profile")
+
+            try:
+                from PIL import Image
+                img = Image.open(uploaded_file)
+                img.verify()
+                uploaded_file.seek(0)
+            except Exception:
+                messages.error(request, "Uploaded file is not a valid image.")
+                return redirect("profile")
+
+            # Remove previous profile picture file from disk if it exists
+            if profile_obj.profile_picture and profile_obj.profile_picture.name:
+                try:
+                    storage = profile_obj.profile_picture.storage
+                    if storage.exists(profile_obj.profile_picture.name):
+                        storage.delete(profile_obj.profile_picture.name)
+                except Exception:
+                    pass
+
+            profile_obj.profile_picture = uploaded_file
 
         profile_obj.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect("profile")
 
     return render(
         request,

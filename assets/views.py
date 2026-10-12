@@ -2,6 +2,7 @@ import os
 import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from projects.models import (
     Project, Chapter, ProjectVisualSettings, ImagePrompt, GeneratedImage, AnimatedVideo, Voiceover
 )
@@ -25,10 +26,19 @@ def visual_studio(request, project_id=None):
     chapters = []
     visual_settings = None
     chapter_prompts = []
+    image_prompts = []
 
     if selected_project:
         chapters = Chapter.objects.filter(project=selected_project).order_by("chapter_no")
         visual_settings, _ = ProjectVisualSettings.objects.get_or_create(project=selected_project)
+        image_prompts = (
+            ImagePrompt.objects.filter(
+                Q(chapter__project=selected_project) | Q(project=selected_project)
+            )
+            .distinct()
+            .prefetch_related("generated_images")
+            .order_by("chapter__chapter_no", "prompt_number")
+        )
 
         for chapter in chapters:
             prompts = ImagePrompt.objects.filter(chapter=chapter).order_by("prompt_number")
@@ -42,6 +52,7 @@ def visual_studio(request, project_id=None):
         "selected_project": selected_project,
         "chapters": chapters,
         "visual_settings": visual_settings,
+        "image_prompts": image_prompts,
         "chapter_prompts": chapter_prompts,
     }
     return render(request, "images_videos.html", context)

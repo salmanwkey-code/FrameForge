@@ -58,6 +58,7 @@
             box-shadow: 0 0 32px rgba(139,92,246,0.5);
             cursor: pointer;
             transition: transform 0.2s;
+            overflow: hidden;
         }
         .profile-avatar-inner:hover {
             transform: scale(1.05);
@@ -154,27 +155,37 @@
             <h1 style="margin: 0 0 4px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.02em;">My Profile</h1>
             <p style="margin: 0; color: var(--muted); font-size: 14px;">Manage your account settings and preferences</p>
         </div>
-        <div class="user-profile-btn glass-panel">
-            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
-            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
-        </div>
+        <a href="{% url 'profile' %}" class="user-profile-btn glass-panel" style="text-decoration: none; color: inherit;">
+            <div class="user-avatar">
+                {% include 'user_avatar.html' %}
+            </div>
+            <span class="user-name">{{ profile.display_name|default:request.user.username|default:"Guest" }}</span>
+        </a>
     </div>
-    
-    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 960px; margin: 0 auto;">
-        
+
+    {% if messages %}
+    <div style="max-width: 960px; margin: 0 auto 20px;">
+        {% for message in messages %}
+        <div class="glass-panel" style="padding: 12px 18px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 10px; {% if message.tags == 'error' %}border-color: rgba(239,68,68,0.4); color: #FCA5A5; background: rgba(239,68,68,0.1);{% else %}border-color: rgba(74,222,128,0.4); color: #86EFAC; background: rgba(74,222,128,0.1);{% endif %}">
+            <span>{% if message.tags == 'error' %}❌{% else %}✅{% endif %}</span>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" id="profile-form" style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 960px; margin: 0 auto;">
+        {% csrf_token %}
+
         <!-- Avatar Card -->
         <div class="glass-panel profile-hero">
-            <input type="file" id="profile-upload" name="profile_picture" style="display: none;" onchange="previewImage(this)">
-            
-            <div class="profile-avatar-ring" onclick="document.getElementById('profile-upload').click()">
+            <input type="file" id="profile-upload" name="profile_picture" accept="image/png,image/jpeg,image/webp,image/gif" style="display: none;" onchange="previewImage(this)">
+
+            <div class="profile-avatar-ring" onclick="document.getElementById('profile-upload').click()" title="Click to upload profile picture" style="cursor: pointer;">
                 <div class="profile-avatar-inner" id="avatarEl">
-                    {% if profile.profile_picture %}
-                    <img src="{{ profile.profile_picture.url }}" alt="Avatar">
-                    {% else %}
-                    {{ request.user.username|first|upper|default:"U" }}
-                    {% endif %}
+                    {% include 'user_avatar.html' with avatar_user=request.user %}
                 </div>
-                <div class="profile-edit-badge">✎</div>
+                <div class="profile-edit-badge" title="Change profile picture">✎</div>
             </div>
 
             <p class="profile-name">{{ profile.display_name|default:request.user.username }}</p>
@@ -197,9 +208,7 @@
         </div>
 
         <!-- Form Card -->
-        <form method="POST" enctype="multipart/form-data" class="glass-panel" style="padding: 32px;">
-            {% csrf_token %}
-
+        <div class="glass-panel" style="padding: 32px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.12)); border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">⚙</div>
                 <div>
@@ -221,7 +230,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
                 <div class="field-group">
                     <label class="field-label">Email</label>
-                    <input type="email" name="email" value="{{ profile.email }}" class="field-input" placeholder="you@example.com">
+                    <input type="email" name="email" value="{{ profile.email|default:request.user.email }}" class="field-input" placeholder="you@example.com">
                 </div>
                 <div class="field-group">
                     <label class="field-label">Phone Number</label>
@@ -233,15 +242,15 @@
                 <textarea name="bio" rows="4" class="field-textarea" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 12px; padding-top: 4px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--border);">
                 <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
                     ✓ Save Changes
                 </button>
                 <span style="font-size: 12px; color: var(--faint);">Changes are saved immediately</span>
             </div>
-        </form>
+        </div>
 
-    </div>
+    </form>
 
 </main>
 </div><!-- end app-layout -->
@@ -249,12 +258,24 @@
 <script>
 function previewImage(input) {
     if (input.files && input.files[0]) {
+        var file = input.files[0];
+        var validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG, WEBP, or GIF).');
+            input.value = '';
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size exceeds 5MB limit. Please choose a smaller image.');
+            input.value = '';
+            return;
+        }
         var reader = new FileReader();
         reader.onload = function(e) {
             var el = document.getElementById('avatarEl');
-            el.innerHTML = '<img src="' + e.target.result + '" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+            el.innerHTML = '<img src="' + e.target.result + '" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">';
         }
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 </script>

@@ -8,10 +8,12 @@
     </div>
 
     <div class="topbar-actions">
-        <div class="user-profile-btn glass-panel">
-            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
-            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
-        </div>
+        <a href="{% url 'profile' %}" class="user-profile-btn glass-panel" style="text-decoration: none; color: inherit;">
+            <div class="user-avatar">
+                {% include 'user_avatar.html' %}
+            </div>
+            <span class="user-name">{{ request.user.profile.display_name|default:request.user.username|default:"Guest" }}</span>
+        </a>
         
         {% if show_new_project_btn %}
         <a href="{% url 'create_project' %}" class="btn btn-primary">
@@ -23,10 +25,12 @@
 {% else %}
 <div class="topbar" style="justify-content: flex-end; margin-bottom: 0; padding-bottom: 0;">
     <div class="topbar-actions">
-        <div class="user-profile-btn glass-panel">
-            <div class="user-avatar">{{ request.user.username|make_list|first|upper|default:"U" }}</div>
-            <span class="user-name">{{ request.user.username|default:"Guest" }}</span>
-        </div>
+        <a href="{% url 'profile' %}" class="user-profile-btn glass-panel" style="text-decoration: none; color: inherit;">
+            <div class="user-avatar">
+                {% include 'user_avatar.html' %}
+            </div>
+            <span class="user-name">{{ request.user.profile.display_name|default:request.user.username|default:"Guest" }}</span>
+        </a>
         {% if show_new_project_btn %}
         <a href="{% url 'create_project' %}" class="btn btn-primary">+ New Project</a>
         {% endif %}
