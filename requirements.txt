@@ -35,3 +35,5 @@ urllib3==2.7.0
 websockets==16.1.1
 gunicorn
 whitenoise
+dj-database-url
+psycopg2-binary
