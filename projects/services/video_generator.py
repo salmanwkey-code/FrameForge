@@ -417,6 +417,70 @@ def _generate_with_runway(animation_prompt: str, image_path: str, output_path: s
     raise VideoGenerationError("Runway generation timed out.")
 
 
+def _generate_with_gemini_omni(
+    animation_prompt: str,
+    image_path: str,
+    output_path: str,
+    duration_seconds: int = 4,
+    aspect_ratio: str = "16:9",
+) -> str:
+    """
+    Attempt generation with Gemini Omni 1.1 Flash (gemini-omni-1.1-flash)
+    via the official google-genai Interactions API.
+    """
+    client = _get_genai_client()
+    if not hasattr(client, "interactions"):
+        raise VideoGenerationUnavailable("Google GenAI SDK does not expose interactions client.")
+
+    logger.info("Uploading image to Gemini Files API for Omni video generation: %s", image_path)
+    file_upload = client.files.upload(file=image_path)
+
+    import time
+    file_name = file_upload.name
+    for _ in range(15):
+        if getattr(file_upload, "state", None) == "ACTIVE" or getattr(file_upload, "state", None) is None:
+            break
+        time.sleep(1)
+        file_upload = client.files.get(name=file_name)
+
+    prompt_text = f"<FIRST_FRAME> {animation_prompt}" if "<FIRST_FRAME>" not in animation_prompt else animation_prompt
+
+    ar = "16:9" if aspect_ratio not in ("16:9", "9:16") else aspect_ratio
+    dur = 4
+    if duration_seconds and 3 <= duration_seconds <= 10:
+        dur = duration_seconds
+
+    video_config = {
+        "type": "video",
+        "delivery": "uri",
+        "aspect_ratio": ar,
+        "duration": f"{dur}s",
+    }
+
+    logger.info("Initiating Gemini Omni 1.1 Flash video generation (duration: %ds, aspect: %s)...", dur, ar)
+    interaction = client.interactions.create(
+        model="gemini-omni-1.1-flash",
+        input=[
+            {"type": "image", "uri": file_upload.uri, "mime_type": getattr(file_upload, "mime_type", None) or "image/png"},
+            {"type": "text", "text": prompt_text}
+        ],
+        response_format=video_config
+    )
+
+    output_video = getattr(interaction, "output_video", None)
+    if not output_video or not getattr(output_video, "uri", None):
+        raise VideoGenerationError(f"No video content returned by Gemini Omni Flash (interaction {getattr(interaction, 'id', 'unknown')})")
+
+    logger.info("Gemini Omni generated video URI: %s. Downloading...", output_video.uri)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    video_bytes = client.files.download(file=output_video.uri)
+    with open(output_path, "wb") as f:
+        f.write(video_bytes)
+
+    logger.info("Gemini Omni video successfully saved to %s (%d bytes)", output_path, len(video_bytes))
+    return output_path
+
+
 def generate_video_from_image(
     animation_prompt: str,
     image_path: str,
@@ -430,21 +494,32 @@ def generate_video_from_image(
     AI image-to-video providers.
 
     Checked in order of availability:
-      1. Google Veo (veo-3.1-generate-preview / veo-3.1-fast-generate-preview)
+      1. Gemini Omni Flash (gemini-omni-1.1-flash via Google GenAI Interactions API)
       2. Luma Dream Machine API (LUMA_API_KEY)
       3. Runway ML Gen-3 (RUNWAY_API_KEY)
-
-    CRITICAL PRINCIPLE:
-      If no real image-to-video provider is accessible with the configured credentials,
-      this function raises VideoGenerationUnavailable. It NEVER fakes output using
-      CSS, transforms, generic FFmpeg zoom/pan, or slide animations.
+      4. Google Veo (veo-3.1-generate-preview / veo-3.1-fast-generate-preview)
     """
     if not animation_prompt or not animation_prompt.strip():
         raise ValueError("Animation prompt is required.")
     if not image_path or not os.path.exists(image_path):
         raise ValueError(f"Source image not found: {image_path}")
 
-    # 1. Check Luma Dream Machine
+    # 1. Check Gemini Omni 1.1 Flash (Primary Google AI video generation using GOOGLE_API_KEY)
+    try:
+        logger.info("Attempting real video generation via Gemini Omni 1.1 Flash...")
+        return _generate_with_gemini_omni(
+            animation_prompt,
+            image_path,
+            output_path,
+            duration_seconds=duration_seconds,
+            aspect_ratio=aspect_ratio,
+        )
+    except VideoGenerationError:
+        raise
+    except Exception as exc:
+        logger.warning("Gemini Omni generation attempt failed: %s", exc)
+
+    # 2. Check Luma Dream Machine
     if os.environ.get("LUMA_API_KEY"):
         try:
             logger.info("Attempting real video generation via Luma Dream Machine...")
@@ -452,7 +527,7 @@ def generate_video_from_image(
         except Exception as e:
             logger.warning("Luma generation attempt failed: %s", e)
 
-    # 2. Check Runway Gen-3
+    # 3. Check Runway Gen-3
     if os.environ.get("RUNWAY_API_KEY"):
         try:
             logger.info("Attempting real video generation via Runway Gen-3...")
@@ -460,7 +535,7 @@ def generate_video_from_image(
         except Exception as e:
             logger.warning("Runway generation attempt failed: %s", e)
 
-    # 3. Check Google Veo 3.1
+    # 4. Check Google Veo 3.1
     try:
         logger.info("Attempting real video generation via Google Veo 3.1...")
         return _generate_with_google_veo(
