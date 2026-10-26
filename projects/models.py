@@ -71,8 +71,7 @@ class ChapterScript(models.Model):
 
     script_text = models.TextField()
     word_count = models.PositiveIntegerField(default=0)
-    # Hash of script_text — used to detect edits after voiceover generation
-    script_hash = models.CharField(max_length=64, blank=True, default='')
+    script_hash = models.CharField(max_length=255, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -209,8 +208,9 @@ class Voiceover(models.Model):
     )
 
     provider = models.CharField(
-        max_length=50,
-        choices=PROVIDERS
+        max_length=100,
+        choices=PROVIDERS,
+        default='google_ai'
     )
 
     voice_name = models.TextField(blank=True, default='')
@@ -236,18 +236,19 @@ class Voiceover(models.Model):
     )
 
     status = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=STATUS_CHOICES,
         default='pending'
     )
 
     audio_file = models.FileField(
         upload_to=voiceover_upload_path,
-        blank=True
+        blank=True,
+        max_length=500
     )
 
     # Hash of the script at time of generation — used to detect staleness
-    script_hash_at_generation = models.CharField(max_length=64, blank=True, default='')
+    script_hash_at_generation = models.CharField(max_length=255, blank=True, default='')
 
     duration_seconds = models.PositiveIntegerField(
         default=0
@@ -301,7 +302,8 @@ class GeneratedImage(models.Model):
     image_no = models.PositiveIntegerField()
 
     image_file = models.ImageField(
-        upload_to=generated_image_upload_path
+        upload_to=generated_image_upload_path,
+        max_length=500
     )
 
     created_at = models.DateTimeField(
@@ -321,7 +323,8 @@ class ChapterExport(models.Model):
     )
 
     zip_file = models.FileField(
-        upload_to='chapter_exports/'
+        upload_to='chapter_exports/',
+        max_length=500
     )
 
     created_at = models.DateTimeField(
@@ -437,7 +440,7 @@ class AnimatedVideo(models.Model):
     motion_instructions = models.TextField(blank=True, default='')
 
     status = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=STATUS_CHOICES,
         default='not_generated'
     )
@@ -445,7 +448,8 @@ class AnimatedVideo(models.Model):
     video_file = models.FileField(
         upload_to=animated_video_upload_path,
         blank=True,
-        null=True
+        null=True,
+        max_length=500
     )
 
     error_message = models.TextField(blank=True, default='')
@@ -489,7 +493,7 @@ class FinalVideo(models.Model):
     )
     
     status = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=STATUS_CHOICES,
         default='pending'
     )
@@ -497,7 +501,8 @@ class FinalVideo(models.Model):
     video_file = models.FileField(
         upload_to=final_video_upload_path,
         blank=True,
-        null=True
+        null=True,
+        max_length=500
     )
 
     error_message = models.TextField(blank=True, default='')
