@@ -62,7 +62,12 @@ def _extract_json(text: str) -> dict:
     text = re.sub(r'^```(?:json)?\s*', '', text, flags=re.IGNORECASE)
     text = re.sub(r'\s*```$', '', text).strip()
     try:
-        return json.loads(text)
+        parsed = json.loads(text)
+        if isinstance(parsed, list):
+            dict_item = next((item for item in parsed if isinstance(item, dict)), None)
+            if dict_item is not None:
+                return dict_item
+        return parsed
     except json.JSONDecodeError:
         pass
     match = re.search(r'\{.*\}', text, re.DOTALL)

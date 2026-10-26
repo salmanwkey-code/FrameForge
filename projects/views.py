@@ -38,7 +38,12 @@ def extract_json(text):
     text = text.strip()
 
     try:
-        return json.loads(text)
+        parsed = json.loads(text)
+        if isinstance(parsed, list):
+            dict_item = next((item for item in parsed if isinstance(item, dict)), None)
+            if dict_item is not None:
+                return dict_item
+        return parsed
     except json.JSONDecodeError:
         pass
 
@@ -152,13 +157,22 @@ def create_project(request):
 
                     data = extract_json(response.text)
 
+                    # Defensive check: ensure data is a dict if Gemini wrapped response in a list
+                    if isinstance(data, list):
+                        dict_item = next((item for item in data if isinstance(item, dict)), None)
+                        data = dict_item if dict_item is not None else {}
+                    elif not isinstance(data, dict):
+                        data = {}
+
                     project.title = data.get("title", "")
                     project.description = data.get("description", "")
                     tags = data.get("tags", "")
                     if isinstance(tags, list):
-                        project.tags = ", ".join(tags)
-                    else:
+                        project.tags = ", ".join(str(t) for t in tags)
+                    elif isinstance(tags, str):
                         project.tags = tags
+                    else:
+                        project.tags = str(tags) if tags else ""
                     project.save()
 
                     project_folder = get_project_folder_name(project)
@@ -174,12 +188,25 @@ def create_project(request):
                     with open(json_path, "w", encoding="utf-8") as file:
                         json.dump(data, file, indent=4, ensure_ascii=False)
 
-                    for index, chapter_data in enumerate(data.get("chapters", []), start=1):
+                    raw_chapters = data.get("chapters", [])
+                    if isinstance(raw_chapters, dict):
+                        raw_chapters = [raw_chapters]
+                    elif not isinstance(raw_chapters, list):
+                        raw_chapters = []
+
+                    for index, chapter_data in enumerate(raw_chapters, start=1):
+                        if isinstance(chapter_data, dict):
+                            c_title = chapter_data.get("chapter_title", "")
+                            c_summary = chapter_data.get("summary", "")
+                        else:
+                            c_title = f"Chapter {index}"
+                            c_summary = str(chapter_data)
+
                         Chapter.objects.create(
                             project=project,
                             chapter_no=index,
-                            title=chapter_data.get("chapter_title", ""),
-                            summary=chapter_data.get("summary", "")
+                            title=c_title,
+                            summary=c_summary
                         )
 
                     chapters = Chapter.objects.filter(project=project).order_by("chapter_no")
