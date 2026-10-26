@@ -90,3 +90,65 @@ def generate_image(prompt_text: str, output_path: str, aspect_ratio: str = "16:9
 
     logger.info("Image successfully written to: %s", output_path)
     return output_path
+
+
+def ensure_image_on_disk(generated_image) -> str:
+    """
+    Ensure the image file for generated_image exists on disk.
+    If missing (e.g. wiped by an ephemeral container restart like on Render),
+    regenerate it using the stored ImagePrompt metadata.
+    """
+    from django.conf import settings
+    try:
+        path = generated_image.image_file.path
+    except Exception:
+        path = os.path.join(str(settings.MEDIA_ROOT), str(generated_image.image_file.name))
+
+    if os.path.exists(path) and os.path.getsize(path) > 0:
+        return path
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    prompt = getattr(generated_image, "prompt", None)
+    if not prompt or not prompt.prompt_text:
+        return path
+
+    try:
+        from projects.models import ProjectVisualSettings
+        project = generated_image.chapter.project
+        vs = ProjectVisualSettings.objects.filter(project=project).first()
+        aspect_ratio = (vs.aspect_ratio if vs and vs.aspect_ratio else None) or prompt.aspect_ratio or "16:9"
+        quality = (vs.video_quality if vs and vs.video_quality else "1080p")
+
+        style_parts = []
+        if prompt.visual_style:
+            style_parts.append(f"Visual style: {prompt.visual_style}")
+        if prompt.image_type:
+            style_parts.append(f"Image type: {prompt.image_type}")
+        if prompt.mood:
+            style_parts.append(f"Mood: {prompt.mood}")
+        if prompt.lighting:
+            style_parts.append(f"Lighting: {prompt.lighting}")
+        if prompt.color_palette:
+            style_parts.append(f"Color palette: {prompt.color_palette}")
+
+        enriched_prompt = prompt.prompt_text.strip()
+        if style_parts:
+            style_string = ", ".join(style_parts)
+            enriched_prompt = (
+                f"CRITICAL INSTRUCTION: You MUST render this image strictly using these exact styles: {style_string}. "
+                f"Completely IGNORE any visual, style, or medium instructions in the text below that contradict these styles. "
+                f"The content to draw is: {prompt.prompt_text.strip()}"
+            )
+
+        logger.info("Auto-recovering missing image on disk: %s", path)
+        generate_image(
+            prompt_text=enriched_prompt,
+            output_path=path,
+            aspect_ratio=aspect_ratio,
+            quality=quality,
+        )
+    except Exception as exc:
+        logger.error("Failed to auto-recover image %s: %s", path, exc)
+
+    return path
+

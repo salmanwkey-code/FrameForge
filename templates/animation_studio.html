@@ -849,7 +849,8 @@
                                         <video src="{{ av.video_file.url }}" autoplay muted loop playsinline></video>
                                         <span class="status-badge animated-badge">▶ Animated</span>
                                     {% elif img and img.image_file %}
-                                        <img src="{{ img.image_file.url }}" alt="Scene {{ prompt.prompt_number }}" loading="lazy">
+                                        <img src="{{ img.image_file.url }}" alt="Scene {{ prompt.prompt_number }}" loading="lazy" onerror="if(!this.dataset.retried){this.dataset.retried='1'; const self=this; setTimeout(()=>{self.src=self.src.split('?')[0]+'?t='+Date.now();}, 1500);}">
+
                                         {% if av and av.status == 'generating' %}
                                             <span class="status-badge generating">⏳ Animating…</span>
                                         {% endif %}

@@ -579,7 +579,8 @@
                                 <div class="scene-media-wrap" id="media-wrap-{{ prompt.id }}">
                                     {% with img=prompt.generated_images.first %}
                                     {% if img and img.image_file %}
-                                        <img src="{{ img.image_file.url }}" alt="Scene {{ prompt.prompt_number }}" loading="lazy">
+                                        <img src="{{ img.image_file.url }}" alt="Scene {{ prompt.prompt_number }}" loading="lazy" onerror="if(!this.dataset.retried){this.dataset.retried='1'; const self=this; setTimeout(()=>{self.src=self.src.split('?')[0]+'?t='+Date.now();}, 1500);}">
+
                                     {% else %}
                                         <div class="scene-placeholder">
                                             <span style="font-size: 28px; opacity: 0.25;">🎨</span>

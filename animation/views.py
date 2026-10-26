@@ -178,12 +178,8 @@ def api_animate_image(request, image_id):
             script_text, image_prompt.start_time or "", image_prompt.end_time or ""
         )
 
-        image_path = ""
-        try:
-            if generated_image.image_file and os.path.exists(generated_image.image_file.path):
-                image_path = generated_image.image_file.path
-        except Exception:
-            pass
+        from projects.services.image_generator import ensure_image_on_disk
+        image_path = ensure_image_on_disk(generated_image)
 
         if not custom_animation_prompt:
             custom_animation_prompt = generate_animation_prompt(
@@ -225,13 +221,14 @@ def api_animate_image(request, image_id):
         animated_video.error_message = ""
         animated_video.save()
 
-        try:
-            image_path = generated_image.image_file.path
-        except (ValueError, FileNotFoundError):
-            animated_video.status = "failed"
-            animated_video.error_message = "Source image file not found on disk."
-            animated_video.save()
-            return JsonResponse({"error": "Source image file is missing."}, status=400)
+        if not image_path or not os.path.exists(image_path):
+            image_path = ensure_image_on_disk(generated_image)
+            if not image_path or not os.path.exists(image_path):
+                animated_video.status = "failed"
+                animated_video.error_message = "Source image could not be recovered on disk."
+                animated_video.save()
+                return JsonResponse({"error": "Source image file is missing."}, status=400)
+
 
         project_folder = get_project_folder_name(project)
         chapter_folder = get_chapter_folder_name(chapter)
@@ -367,7 +364,8 @@ def api_batch_animate(request, project_id):
                 script_segment = extract_script_segment(
                     script_text, image_prompt.start_time or "", image_prompt.end_time or ""
                 )
-                image_path = generated_image.image_file.path
+                from projects.services.image_generator import ensure_image_on_disk
+                image_path = ensure_image_on_disk(generated_image)
 
                 animation_prompt_text = generate_animation_prompt(
                     image_prompt_text=image_prompt.prompt_text,
