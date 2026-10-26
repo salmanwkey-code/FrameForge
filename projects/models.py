@@ -22,10 +22,10 @@ class Project(models.Model):
         related_name='projects'
     )
 
-    title = models.CharField(max_length=255, blank=True)
+    title = models.CharField(max_length=500, blank=True)
     prompt = models.TextField()
-    description = models.TextField(blank=True)
-    tags = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
+    tags = models.TextField(blank=True, null=True)
     plan_json = models.JSONField(blank=True, null=True)
     status = models.CharField(
         max_length=20,
@@ -48,8 +48,8 @@ class Chapter(models.Model):
     )
 
     chapter_no = models.PositiveIntegerField()
-    title = models.CharField(max_length=255)
-    summary = models.TextField()
+    title = models.CharField(max_length=500)
+    summary = models.TextField(blank=True, null=True)
 
     status = models.CharField(
         max_length=20,
@@ -102,14 +102,14 @@ class ImagePrompt(models.Model):
 
     prompt_number = models.PositiveIntegerField(default=1)
     prompt_text = models.TextField()
-    start_time = models.CharField(max_length=20, blank=True, null=True)
-    end_time = models.CharField(max_length=20, blank=True, null=True)
-    visual_style = models.CharField(max_length=100, blank=True, default='')
-    image_type = models.CharField(max_length=100, blank=True, default='')
-    mood = models.CharField(max_length=100, blank=True, default='')
-    lighting = models.CharField(max_length=100, blank=True, default='')
-    color_palette = models.CharField(max_length=100, blank=True, default='')
-    aspect_ratio = models.CharField(max_length=20, blank=True, default='16:9')
+    start_time = models.CharField(max_length=50, blank=True, null=True)
+    end_time = models.CharField(max_length=50, blank=True, null=True)
+    visual_style = models.TextField(blank=True, null=True, default='')
+    image_type = models.TextField(blank=True, null=True, default='')
+    mood = models.TextField(blank=True, null=True, default='')
+    lighting = models.TextField(blank=True, null=True, default='')
+    color_palette = models.TextField(blank=True, null=True, default='')
+    aspect_ratio = models.CharField(max_length=50, blank=True, default='16:9')
     status = models.CharField(max_length=50, default='Ready for generation')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -131,10 +131,10 @@ class VideoPrompt(models.Model):
     )
     prompt_number = models.PositiveIntegerField(default=1)
     prompt_text = models.TextField()
-    duration = models.CharField(max_length=20, blank=True, null=True)
-    start_time = models.CharField(max_length=20, blank=True, null=True)
-    end_time = models.CharField(max_length=20, blank=True, null=True)
-    visual_style = models.CharField(max_length=100, blank=True, default='')
+    duration = models.CharField(max_length=50, blank=True, null=True)
+    start_time = models.CharField(max_length=50, blank=True, null=True)
+    end_time = models.CharField(max_length=50, blank=True, null=True)
+    visual_style = models.TextField(blank=True, null=True, default='')
     motion_description = models.TextField(blank=True, default='')
     camera_movement = models.TextField(blank=True, default='')
     status = models.CharField(max_length=50, default='Ready for generation')
@@ -156,7 +156,7 @@ class ProjectVisualSettings(models.Model):
         ('1080p', '1080p'),
         ('4K', '4K'),
     ]
-    visual_style = models.CharField(max_length=100, blank=True, default='')
+    visual_style = models.TextField(blank=True, null=True, default='')
     video_quality = models.CharField(max_length=20, choices=QUALITY_CHOICES, default='1080p')
     aspect_ratio = models.CharField(max_length=20, blank=True, default='16:9')
     images_per_minute = models.PositiveIntegerField(default=12)
@@ -213,25 +213,25 @@ class Voiceover(models.Model):
         choices=PROVIDERS
     )
 
-    voice_name = models.CharField(max_length=100)
+    voice_name = models.CharField(max_length=255, blank=True, default='')
     
-    audio_profile = models.TextField(blank=True, default='')
+    audio_profile = models.TextField(blank=True, null=True)
     
-    style = models.CharField(
-        max_length=50,
+    style = models.TextField(
         blank=True,
+        null=True,
         default='Documentary'
     )
     
-    pace = models.CharField(
-        max_length=50,
+    pace = models.TextField(
         blank=True,
+        null=True,
         default='Natural'
     )
     
-    accent = models.CharField(
-        max_length=50,
+    accent = models.TextField(
         blank=True,
+        null=True,
         default='British (RP)'
     )
 
@@ -428,7 +428,7 @@ class AnimatedVideo(models.Model):
         choices=MOTION_INTENSITY_CHOICES,
         default='subtle'
     )
-    animation_style = models.CharField(max_length=100, blank=True, default='')
+    animation_style = models.TextField(blank=True, null=True, default='')
     camera_style = models.CharField(
         max_length=50,
         choices=CAMERA_STYLE_CHOICES,
