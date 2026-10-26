@@ -22,7 +22,7 @@ class Project(models.Model):
         related_name='projects'
     )
 
-    title = models.CharField(max_length=500, blank=True)
+    title = models.TextField(blank=True, default='')
     prompt = models.TextField()
     description = models.TextField(blank=True, null=True)
     tags = models.TextField(blank=True, null=True)
@@ -48,7 +48,7 @@ class Chapter(models.Model):
     )
 
     chapter_no = models.PositiveIntegerField()
-    title = models.CharField(max_length=500)
+    title = models.TextField(blank=True, default='')
     summary = models.TextField(blank=True, null=True)
 
     status = models.CharField(
@@ -76,7 +76,7 @@ class ChapterScript(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    duration = models.CharField(max_length=50, blank=True, null=True)
+    duration = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         import hashlib
@@ -102,15 +102,15 @@ class ImagePrompt(models.Model):
 
     prompt_number = models.PositiveIntegerField(default=1)
     prompt_text = models.TextField()
-    start_time = models.CharField(max_length=50, blank=True, null=True)
-    end_time = models.CharField(max_length=50, blank=True, null=True)
+    start_time = models.TextField(blank=True, null=True)
+    end_time = models.TextField(blank=True, null=True)
     visual_style = models.TextField(blank=True, null=True, default='')
     image_type = models.TextField(blank=True, null=True, default='')
     mood = models.TextField(blank=True, null=True, default='')
     lighting = models.TextField(blank=True, null=True, default='')
     color_palette = models.TextField(blank=True, null=True, default='')
-    aspect_ratio = models.CharField(max_length=50, blank=True, default='16:9')
-    status = models.CharField(max_length=50, default='Ready for generation')
+    aspect_ratio = models.TextField(blank=True, default='16:9')
+    status = models.TextField(blank=True, default='Ready for generation')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -131,13 +131,13 @@ class VideoPrompt(models.Model):
     )
     prompt_number = models.PositiveIntegerField(default=1)
     prompt_text = models.TextField()
-    duration = models.CharField(max_length=50, blank=True, null=True)
-    start_time = models.CharField(max_length=50, blank=True, null=True)
-    end_time = models.CharField(max_length=50, blank=True, null=True)
+    duration = models.TextField(blank=True, null=True)
+    start_time = models.TextField(blank=True, null=True)
+    end_time = models.TextField(blank=True, null=True)
     visual_style = models.TextField(blank=True, null=True, default='')
     motion_description = models.TextField(blank=True, default='')
     camera_movement = models.TextField(blank=True, default='')
-    status = models.CharField(max_length=50, default='Ready for generation')
+    status = models.TextField(blank=True, default='Ready for generation')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -158,7 +158,7 @@ class ProjectVisualSettings(models.Model):
     ]
     visual_style = models.TextField(blank=True, null=True, default='')
     video_quality = models.CharField(max_length=20, choices=QUALITY_CHOICES, default='1080p')
-    aspect_ratio = models.CharField(max_length=20, blank=True, default='16:9')
+    aspect_ratio = models.TextField(blank=True, default='16:9')
     images_per_minute = models.PositiveIntegerField(default=12)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -213,7 +213,7 @@ class Voiceover(models.Model):
         choices=PROVIDERS
     )
 
-    voice_name = models.CharField(max_length=255, blank=True, default='')
+    voice_name = models.TextField(blank=True, default='')
     
     audio_profile = models.TextField(blank=True, null=True)
     
